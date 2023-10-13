@@ -1,159 +1,164 @@
-const Web3 = require("web3");
-const web3 = new Web3();
-
+const fs = require("fs");
+const inquirer = require("inquirer");
 const { generateKey } = require("sss-pk-generator");
-// const path = require("path");
 
-// const readline = require("readline");
-// const readlineSync = require("readline-sync");
-// const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const askSplit = () => {
+  const questions = [
+    {
+      type: "input",
+      name: "split",
+      message: "How many share of password? if less than 2, a normal password is generated. <splitN> : ",
+      validate: function (value) {
+        const valid = !isNaN(parseFloat(value)) && parseFloat(value) < 10;
+        return valid || "Please enter a number less than 10";
+      },
+      filter: Number,
+    },
+  ];
+  const split = inquirer.prompt(questions);
 
-process.on("SIGINT", function () {
-  console.log("\nI caught SIGINT signal.");
-  process.exit();
-});
+  return split;
+};
 
-process.on("SIGTERM", function () {
-  console.log("\nI caught SIGTERM signal.");
-  process.exit();
-});
+const askThreshold = (split) => {
+  const question = [
+    {
+      type: "input",
+      name: "threshold",
+      message: `Enter the threshold, must be less than or equal to ${split}. <threshold> : `,
+      validate: function (value) {
+        const valid = !isNaN(parseFloat(value));
+        return valid || "Please enter a number";
+      },
+      filter: Number,
+    },
+  ];
+  const threshold = inquirer.prompt(question);
 
-const readlineSync = require("readline-sync");
-const readline = require("readline");
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return threshold;
+};
 
-const { writeFileSync } = require("fs");
-const { resolve } = require("path");
-const { cwd } = require("process");
+const askStrict = () => {
+  const questions = [
+    {
+      type: "list",
+      name: "strict",
+      message: "Choose whether it is a plain password(p) or a strict password(default) : ",
+      choices: ["default", "p"],
+    },
+  ];
+  const strict = inquirer.prompt(questions);
 
-function jsonKeyStringBuilder(address, params) {
-  return new Promise((resolve, reject) => {
-    try {
-      const json = JSON.parse(params);
+  return strict;
+};
 
-      resolve(`{"address": "${address}", "params": { "ct": "${json.ct}", "iv": "${json.iv}", "s": "${json.s}"}}`);
-    } catch (error) {
-      return reject(error);
-    }
-  });
-}
+const askStrictPassphrase = () => {
+  const questions = [
+    {
+      type: "password",
+      name: "password",
+      message: `Enter the password of new account.\nⓥ 13 or more characters\nⓥ 1 or more special characters\nⓥ 1 or more big letters\nⓥ 1 or more digits\nPassphrase : `,
+      validate: function (value) {
+        const valid = value.length >= 13 && /[\W]/.test(value) && /[A-Z]/.test(value) && /[0-9]/.test(value);
+        return valid || "Password does not meet the requirements";
+      },
+      // mask: "*",
+    },
+  ];
+  const passphrase = inquirer.prompt(questions);
 
-async function makeNodeJsonFile(path, text) {
-  writeFileSync(path, text);
-}
+  return passphrase;
+};
 
-function question(question) {
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => resolve(answer));
-  });
-}
+const askRepeatStrictPassphrase = (password) => {
+  const questions = [
+    {
+      type: "password",
+      name: "password",
+      message: `Repeat Passphrase : `,
+      validate: function (value) {
+        return value === password || "Passwords do not match";
+      },
+      // mask: "*",
+    },
+  ];
 
-function askSegments() {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let split = "";
-      split = parseInt(await question(`How many share of password? if less than 2, a normal password is generated. <splitN> : `));
-      console.log(`splitN: ${split}`);
+  return inquirer.prompt(questions);
+};
 
-      let threshold = "";
-      threshold = parseInt(await question(`Enter the threshold, must be less than or equal to 3. <threshold> : `));
-      console.log(`threshold: ${threshold}`);
-
-      resolve({ split, threshold });
-    } catch (error) {
-      return reject(error);
-    }
-  });
-}
-
-function askSecrets(split, threshold) {
-  return new Promise((resolve, reject) => {
-    const regexTester =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~])[A-Za-z\d!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]{8,}$/;
-    const regexMsg =
-      "password must contain uppercase letters, special characters and numbers and must be at least 8 characters long.";
-
-    console.log(`${threshold} of ${split} Key Generate Start`);
-    console.log(`ⓥ least 8 characters long\nⓥ 1 or more special characters\nⓥ 1 or more big letters\nⓥ 1 or more digits`);
-    try {
-      const secrets = [];
-
-      while (secrets.length < split) {
-        let ans = "";
-        // ans = readlineSync.question(`password #${secrets.length + 1}:`, { hideEchoBack: true, mask: "" });
-
-        try {
-          ans = readlineSync.question(`password #${secrets.length + 1}: `, { hideEchoBack: true, mask: "" });
-        } catch (e) {
-          if (e.signal === "SIGINT" || e.signal === "SIGTERM" || e.exitCode === -1073741510 || e.exitCode === 3221225786) {
-            console.log("\nreadlineSync caught signal.");
-            setTimeout(function () {
-              process.kill(process.pid, "SIGINT");
-            }, 0);
-          } else {
-            console.error(e);
-            process.exit(1);
-          }
-        }
-
-        if (regexTester.test(ans)) {
-          let ans2 = "";
-          // ans2 = readlineSync.question(`reinput password:`, { hideEchoBack: true, mask: "" });
-
-          try {
-            ans2 = readlineSync.question(`re-input #${secrets.length + 1}: `, { hideEchoBack: true, mask: "" });
-          } catch (e) {
-            if (e.signal === "SIGINT" || e.signal === "SIGTERM" || e.exitCode === -1073741510 || e.exitCode === 3221225786) {
-              console.log("\nreadlineSync caught signal.");
-              setTimeout(function () {
-                process.kill(process.pid, "SIGINT");
-              }, 0);
-            } else {
-              console.error(e);
-              process.exit(1);
-            }
-          }
-
-          if (ans == "exit") process.exit(1);
-
-          if (ans === ans2) secrets.push(ans);
-          else console.log("password not matched");
+const askKeystoreDir = (split, index) => {
+  const questions = [
+    {
+      type: "input",
+      name: "keystoreDir",
+      message: `Enter the path to store the share (${index}/${split}) : `,
+      validate: function (value) {
+        if (fs.existsSync(value)) {
+          return true;
         } else {
-          console.log(regexMsg);
+          return "Directory does not exist. Please enter a valid path.";
+        }
+      },
+    },
+  ];
+
+  return inquirer.prompt(questions);
+};
+
+const jsonBuilder = async (address, params) => {
+  const parsedParams = JSON.parse(params);
+
+  return `{"address":"${address}","params":{"ct":"${parsedParams.ct}","iv":"${parsedParams.iv}","s":"${parsedParams.s}"}}`;
+};
+
+const generateKeystore = async () => {
+  try {
+    const { split } = await askSplit();
+    console.log(`splitN: ${split}`);
+
+    // 분할 없는 키 생성
+    if (split === 1) {
+      const { strict } = await askStrict();
+
+      if (strict === "default") {
+        const { password } = await askStrictPassphrase();
+        const validatePassword = await askRepeatStrictPassphrase(password);
+        if (validatePassword) {
+          console.log("Passwords matched. Proceeding...");
         }
       }
-
-      resolve(secrets);
-    } catch (error) {
-      return reject(error);
     }
-  });
-}
+    // 분할 하는 키 생성
+    else {
+      const { threshold } = await askThreshold(split);
+      console.log(`threshold: ${threshold}`);
 
-async function generateKeyStore(dir = "./") {
-  const segments = await askSegments();
-  const split = segments.split;
-  const threshold = segments.threshold;
+      const secrets = [];
+      for (let i = 1; i <= split; i++) {
+        const { password } = await askStrictPassphrase();
+        const validatePassword = await askRepeatStrictPassphrase(password);
 
-  const secrets = await askSecrets(split, threshold);
-  const res = generateKey(secrets, threshold);
+        if (validatePassword) secrets.push(password);
+      }
 
-  let result = [];
-  for (let i = 0; i < split; i++) {
-    let filename = `keystore_${i + 1}of${split}_${res.address}.json`;
+      const key = generateKey(secrets, threshold);
+      const shares = key.shares;
 
-    let keystorePath = resolve(cwd(), dir, filename);
+      for (let i = 0; i < shares.length; i++) {
+        // 키스토어 분할 경로 지정해주는 로직
+        const { keystoreDir } = await askKeystoreDir(split, i + 1);
 
-    let keystoreJson = await jsonKeyStringBuilder(res.address, res.shares[i].cipherparams);
+        const filename = `keystore-${i + 1}of${split}_${key.address}.json`;
+        const shareFile = await jsonBuilder(key.address, shares[i].cipherparams);
 
-    await makeNodeJsonFile(keystorePath, keystoreJson);
+        if (!fs.existsSync(`${keystoreDir}`)) fs.mkdirSync(`${keystoreDir}`);
+        fs.writeFileSync(`${keystoreDir}/${filename}`, shareFile);
+      }
 
-    result.push(keystorePath);
+      console.log(`Generate Success!!\nAddress: ${key.address}`);
+    }
+  } catch (error) {
+    console.error(error.message);
   }
-
-  console.log(`Generation Success!! ${res.address}`);
-
-  return { address: res.address, n: split, t: threshold, result };
-}
-
-generateKeyStore();
+};
+generateKeystore();
