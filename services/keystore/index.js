@@ -43,15 +43,6 @@ const encrypt = (share, password) => {
   });
 };
 
-const generateAccount = () => {
-  return new Promise(async (resolve, reject) => {
-    try {
-    } catch (error) {
-      return reject(error);
-    }
-  });
-};
-
 const generateKeystore = async () => {
   try {
     const { split } = await ask.askSplit();
@@ -106,13 +97,26 @@ const generateKeystore = async () => {
 
       await web3.eth.accounts.wallet.add(wallet.privateKey);
       const keystore = web3.eth.accounts.wallet.encrypt(passphrase);
-      console.log(keystore);
 
       fs.writeFileSync(`${path.dirname(keystoreDir)}/keystore_${wallet.address}.json`, JSON.stringify(keystore[0]));
       await web3.eth.accounts.wallet.remove(wallet.privateKey);
+
+      console.log(`Generate Success!\nAddress: ${wallet.address}\nPrivateKey: ${wallet.privateKey}`);
     }
   } catch (error) {
     console.error(error.message);
   }
 };
-generateKeystore();
+
+const unlockKeystore = async (from, keystore, threshold) => {
+  try {
+    if (!fs.existsSync(keystore)) return new Error("Not Exist Keystore File");
+
+    const keystoreData = fs.readFileSync(keystore);
+    console.log(keystoreData);
+  } catch (error) {
+    console.error(error.message);
+  }
+};
+
+module.exports = { generateKeystore, unlockKeystore };

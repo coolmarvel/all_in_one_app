@@ -39,7 +39,7 @@ program
   .option("--lock", "if true, from key will be changed to the lock state after signing first tx")
   .option("--unlock", "if true, from key will be not changed to the lock state after signing first tx")
   .option("--keyhash", "if true, check the 2 bytes of the shared key hash first")
-  .option("--keyhash", "if true, check the 2 bytes of the shared key hash first")
+  .option("--keystore <value>", "the location where keystore")
   .option("--message <value>", "message to sign")
   .option("--update", "if true, execute updateRoleKey")
   .option("--keytest", "if true, execute updateRoleKey test")
@@ -59,8 +59,34 @@ program
 
 // Add commands here using program.command(...)
 program.command("deploy").description("Contract Deploy and Make Transaction To The Contracts Deployed.");
-program.command("genkey").description("Generating Account On Keystore");
-program.command("check").description("Checking Passphrase Of Account On Keystore");
+program
+  .command("genkey")
+  .description("Generating Account On Keystore")
+  .action(async () => {
+    const { generateKeystore } = require("./services/keystore");
+    await generateKeystore();
+  });
+program
+  .command("check")
+  .option("--from <value>", "tx sender")
+  .option("--keystore <value>", "the location where keystore")
+  .option("--threshold <value>", "threshold to recover passphrase", 1)
+  .description("Checking Passphrase Of Account On Keystore")
+  .action(async (options) => {
+    const { unlockKeystore } = require("./services/keystore");
+
+    console.log(options);
+
+    let from = null;
+    let keystore = null;
+    let threshold = null;
+
+    if (options.from) from = options.from;
+    if (options.keystore) keystore = options.keystore;
+    if (options.threshold) threshold = options.threshold;
+
+    await unlockKeystore(from, keystore, threshold);
+  });
 program.command("update").description("Updaging Passphrase Of Account On Keystore");
 program.command("console").description("Running console");
 program.command("create").description("Create project directory");
