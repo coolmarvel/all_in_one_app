@@ -4,7 +4,7 @@ const path = require("path");
 
 const major_version = 1;
 const minor_version = 0;
-const patch_version = 0;
+const patch_version = 1;
 
 const git_commit = "";
 const app_version = `v${major_version}.${minor_version}.${patch_version}`;
@@ -78,8 +78,8 @@ program
     const options = program.opts();
 
     let from = null;
+    let threshold = 1;
     let keystore = null;
-    let threshold = null;
 
     if (options.from) from = options.from;
     if (options.keystore) keystore = options.keystore;

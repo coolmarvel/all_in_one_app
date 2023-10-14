@@ -78,6 +78,18 @@ const generateKeystore = async () => {
         const validatePassword = await ask.askRepeatStrictPassphrase(password);
         if (validatePassword) {
           console.log("Passwords matched. Proceeding...");
+
+          const { keystoreDir } = await ask.askKeystoreDir();
+
+          const wallet = web3.eth.accounts.create();
+
+          await web3.eth.accounts.wallet.add(wallet.privateKey);
+          const keystore = web3.eth.accounts.wallet.encrypt(password);
+
+          fs.writeFileSync(`${keystoreDir}/keystore_${wallet.address}.json`, JSON.stringify(keystore[0]));
+          await web3.eth.accounts.wallet.remove(wallet.privateKey);
+
+          console.log(`Generate Success!\nAddress: ${wallet.address}\nPrivateKey: ${wallet.privateKey}`);
         }
       }
     }
@@ -131,6 +143,7 @@ const generateKeystore = async () => {
 
 const unlockKeystore = async (from, keystore, threshold) => {
   try {
+    // dir라면 디렉토리 안에 파일을 읽고 파일이라면 파일만 읽기 추가하기
     if (!fs.existsSync(keystore)) return new Error("Not Exist Keystore File");
 
     const keystoreData = JSON.parse(fs.readFileSync(keystore).toString());
@@ -144,30 +157,38 @@ const unlockKeystore = async (from, keystore, threshold) => {
     if (!web3.utils.checkAddressChecksum(keystoreAddress)) return new Error("Invalid BIP39 checksum at keystore");
     if (!web3.utils.checkAddressChecksum(fromAddress)) return new Error("Invalid BIP39 checksum at from");
 
-    if (keystoreAddress === fromAddress) {
-      const shares = {};
-      for (let i = 0; i < threshold; i++) {
-        const { keystoreDir } = await ask.askKeystoreCombineDir(threshold, i + 1);
+    if (threshold === 1) {
+      const { password } = await ask.askStrictPassphrase();
 
-        if (!fs.existsSync(`${keystoreDir}/passphrase`)) return new Error("Non exist passphrase directory");
-
-        const sssFile = JSON.parse(fs.readFileSync(`${keystoreDir}/passphrase/share.sss`, "utf8"));
-        const ciphertextBytes = Uint8Array.from(Buffer.from(sssFile.Share, "base64"));
-
-        const { password } = await ask.askStrictPassphrase();
-
-        const share = await decrypt(ciphertextBytes, password);
-        shares[i + 1] = share;
-      }
-
-      const originBytes = shamir.join(shares);
-
-      const decoder = new TextDecoder();
-      const origin = decoder.decode(originBytes);
-
-      const wallet = await web3.eth.accounts.wallet.decrypt([keystoreData], origin);
+      const wallet = await web3.eth.accounts.wallet.decrypt([keystoreData], password);
 
       if (wallet) console.log(`Unlock success!\nAddress: ${wallet[0].address}`);
+    } else if (threshold > 1) {
+      if (keystoreAddress === fromAddress) {
+        const shares = {};
+        for (let i = 0; i < threshold; i++) {
+          const { keystoreDir } = await ask.askKeystoreCombineDir(threshold, i + 1);
+
+          if (!fs.existsSync(`${keystoreDir}/passphrase`)) return new Error("Non exist passphrase directory");
+
+          const sssFile = JSON.parse(fs.readFileSync(`${keystoreDir}/passphrase/share.sss`, "utf8"));
+          const ciphertextBytes = Uint8Array.from(Buffer.from(sssFile.Share, "base64"));
+
+          const { password } = await ask.askStrictPassphrase();
+
+          const share = await decrypt(ciphertextBytes, password);
+          shares[i + 1] = share;
+        }
+
+        const originBytes = shamir.join(shares);
+
+        const decoder = new TextDecoder();
+        const origin = decoder.decode(originBytes);
+
+        const wallet = await web3.eth.accounts.wallet.decrypt([keystoreData], origin);
+
+        if (wallet) console.log(`Unlock success!\nAddress: ${wallet[0].address}`);
+      }
     }
   } catch (error) {
     console.error(error.message);

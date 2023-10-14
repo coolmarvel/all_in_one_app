@@ -85,6 +85,25 @@ const askRepeatStrictPassphrase = (password) => {
   return inquirer.prompt(questions);
 };
 
+const askKeystoreDir = () => {
+  const questions = [
+    {
+      type: "input",
+      name: "keystoreDir",
+      message: `Enter the path to store : `,
+      validate: function (value) {
+        if (fs.existsSync(value)) {
+          return true;
+        } else {
+          return "Directory does not exist. Please enter a valid path.";
+        }
+      },
+    },
+  ];
+
+  return inquirer.prompt(questions);
+};
+
 const askKeystoreSplitDir = (split, index) => {
   const questions = [
     {
@@ -127,6 +146,7 @@ module.exports = {
   askSplit,
   askStrict,
   askThreshold,
+  askKeystoreDir,
   askKeystoreSplitDir,
   askKeystoreCombineDir,
   askStrictPassphrase,
