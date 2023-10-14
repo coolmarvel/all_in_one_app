@@ -67,15 +67,15 @@ program
     await generateKeystore();
   });
 program
+  .description("Checking Passphrase Of Account On Keystore")
   .command("check")
   .option("--from <value>", "tx sender")
   .option("--keystore <value>", "the location where keystore")
   .option("--threshold <value>", "threshold to recover passphrase", 1)
-  .description("Checking Passphrase Of Account On Keystore")
-  .action(async (options) => {
+  .action(async () => {
     const { unlockKeystore } = require("./services/keystore");
 
-    console.log(options);
+    const options = program.opts();
 
     let from = null;
     let keystore = null;
@@ -83,7 +83,7 @@ program
 
     if (options.from) from = options.from;
     if (options.keystore) keystore = options.keystore;
-    if (options.threshold) threshold = options.threshold;
+    if (options.threshold) threshold = parseInt(options.threshold);
 
     await unlockKeystore(from, keystore, threshold);
   });

@@ -43,6 +43,27 @@ const encrypt = (share, password) => {
   });
 };
 
+const decrypt = (ciphertextBytes, password) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const hash = CryptoJS.SHA3(password, { outputLength: 256 });
+      const wordArray = CryptoJS.lib.WordArray.create(hash.words.slice(0, 4));
+      const keyBytes = new Uint8Array(
+        wordArray.words
+          .map((word) => [(word >>> 24) & 0xff, (word >>> 16) & 0xff, (word >>> 8) & 0xff, word & 0xff])
+          .flat()
+      );
+
+      const aesCtr = new aes.ModeOfOperation.ctr(keyBytes);
+      const share = aesCtr.decrypt(ciphertextBytes);
+
+      resolve(share);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
 const generateKeystore = async () => {
   try {
     const { split } = await ask.askSplit();
@@ -74,7 +95,7 @@ const generateKeystore = async () => {
 
       let keystoreDir = "";
       for (let i = 0; i < split; i++) {
-        ({ keystoreDir } = await ask.askKeystoreDir(split, i + 1));
+        ({ keystoreDir } = await ask.askKeystoreSplitDir(split, i + 1));
         console.log(
           "Enter the password of new account.\nⓥ 13 or more characters\nⓥ 1 or more special characters\nⓥ 1 or more big letters\nⓥ 1 or more digits\n"
         );
@@ -112,10 +133,45 @@ const unlockKeystore = async (from, keystore, threshold) => {
   try {
     if (!fs.existsSync(keystore)) return new Error("Not Exist Keystore File");
 
-    const keystoreData = fs.readFileSync(keystore);
-    console.log(keystoreData);
+    const keystoreData = JSON.parse(fs.readFileSync(keystore).toString());
+
+    if (!web3.utils.isAddress(keystoreData.address)) return new Error("Invalid address at keystore");
+    if (from !== null && !web3.utils.isAddress(from)) return new Error("Invalid address at from");
+
+    const keystoreAddress = web3.utils.toChecksumAddress(keystoreData.address);
+    const fromAddress = web3.utils.toChecksumAddress(from);
+
+    if (!web3.utils.checkAddressChecksum(keystoreAddress)) return new Error("Invalid BIP39 checksum at keystore");
+    if (!web3.utils.checkAddressChecksum(fromAddress)) return new Error("Invalid BIP39 checksum at from");
+
+    if (keystoreAddress === fromAddress) {
+      const shares = {};
+      for (let i = 0; i < threshold; i++) {
+        const { keystoreDir } = await ask.askKeystoreCombineDir(threshold, i + 1);
+
+        if (!fs.existsSync(`${keystoreDir}/passphrase`)) return new Error("Non exist passphrase directory");
+
+        const sssFile = JSON.parse(fs.readFileSync(`${keystoreDir}/passphrase/share.sss`, "utf8"));
+        const ciphertextBytes = Uint8Array.from(Buffer.from(sssFile.Share, "base64"));
+
+        const { password } = await ask.askStrictPassphrase();
+
+        const share = await decrypt(ciphertextBytes, password);
+        shares[i + 1] = share;
+      }
+
+      const originBytes = shamir.join(shares);
+
+      const decoder = new TextDecoder();
+      const origin = decoder.decode(originBytes);
+
+      const wallet = await web3.eth.accounts.wallet.decrypt([keystoreData], origin);
+
+      if (wallet) console.log(`Unlock success!\nAddress: ${wallet[0].address}`);
+    }
   } catch (error) {
     console.error(error.message);
+    if (error.message.includes("possibly wrong password")) await unlockKeystore(from, keystore, threshold);
   }
 };
 

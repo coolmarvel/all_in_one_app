@@ -12,6 +12,7 @@
     "readline-sync": "^1.4.10",
     "shamir": "^0.7.1",
     "shamirs-secret-sharing": "^1.0.1",
+    "toml": "^3.0.0",
     "web3": "1.10.0"
   }
 }

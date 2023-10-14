@@ -85,7 +85,7 @@ const askRepeatStrictPassphrase = (password) => {
   return inquirer.prompt(questions);
 };
 
-const askKeystoreDir = (split, index) => {
+const askKeystoreSplitDir = (split, index) => {
   const questions = [
     {
       type: "input",
@@ -104,4 +104,31 @@ const askKeystoreDir = (split, index) => {
   return inquirer.prompt(questions);
 };
 
-module.exports = { askSplit, askStrict, askThreshold, askKeystoreDir, askStrictPassphrase, askRepeatStrictPassphrase };
+const askKeystoreCombineDir = (split, index) => {
+  const questions = [
+    {
+      type: "input",
+      name: "keystoreDir",
+      message: `Enter the path to Retrieve the share (${index}/${split}) : `,
+      validate: function (value) {
+        if (fs.existsSync(value)) {
+          return true;
+        } else {
+          return "Directory does not exist. Please enter a valid path.";
+        }
+      },
+    },
+  ];
+
+  return inquirer.prompt(questions);
+};
+
+module.exports = {
+  askSplit,
+  askStrict,
+  askThreshold,
+  askKeystoreSplitDir,
+  askKeystoreCombineDir,
+  askStrictPassphrase,
+  askRepeatStrictPassphrase,
+};
