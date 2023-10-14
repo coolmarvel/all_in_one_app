@@ -69,7 +69,7 @@ function doIt() {
   // prints 'hello there'
   console.log(utf8Decoder.decode(recovered)); // KO����x�t�ԝ�*u
 }
-// doIt();
+doIt();
 
 let shares = {};
 function unlockpassphrase() {
@@ -103,4 +103,4 @@ function unlockpassphrase() {
   // prints 'hello there'
   console.log(utf8Decoder.decode(recovered));
 }
-unlockpassphrase();
+// unlockpassphrase();

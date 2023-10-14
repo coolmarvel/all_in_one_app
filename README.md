@@ -1,0 +1,1 @@
+sss-pk-generator package.json에서 제거
