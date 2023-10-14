@@ -5,4 +5,10 @@ const toml = require("toml");
 const read = fs.readFileSync("config.toml", "utf-8");
 const data = toml.parse(read);
 
-console.log(data);
+const name = data.node.name;
+
+const global = {};
+
+global.name = name;
+
+console.log(global);
