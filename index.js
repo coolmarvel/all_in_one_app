@@ -28,7 +28,7 @@ program
   .option("--datadir <value>", "the location where raw txs", "./data")
   .option("--output <value>", "save raw tx in datadir without actually sending tx")
   .option("--threshold <value>", "threshold to recover passphrase", 1)
-  .option("--config <value>", "the location where the configuration file", "./config_frontNode.toml")
+  .option("--config <value>", "the location where the configuration file", "./config.toml")
   .option("--chain <value>", "target contracts, 'all' for all chains in contract-deployer", "cypress")
   .option("--compile", "if true, only compile is performed")
   .option("--test", "test in a virtual chain using simulated backend")
@@ -46,9 +46,7 @@ program
   .option("--name <value>", "contrects name")
   .option("--project <value>", "project name")
   .option("--file <value>", "file name")
-  .option("--file <value>", "file name")
   .option("--abstract", "create abstract contract")
-  .option("--interface", "create contract interface")
   .option("--interface", "create contract interface")
   .option("--record", "record tx receipt")
   .option("--multi", "transfer coin with multi txs")
@@ -88,7 +86,22 @@ program
     await unlockKeystore(from, keystore, threshold);
   });
 program.command("update").description("Updaging Passphrase Of Account On Keystore");
-program.command("console").description("Running console");
+program
+  .command("console")
+  .description("Running console")
+  .option("--keystore <value>", "the location where keystore")
+  .option("--threshold <value>", "threshold to recover passphrase", 1)
+  .option("--config <value>", "the location where the configuration file", "./config.toml")
+  .option("--allow", "allow to sign tx without check process")
+  .option("--unlock", "if true, from key will be not changed to the lock state after signing first tx")
+  .action(() => {
+    const { console, clearScreen } = require("./services/console");
+
+    const options = program.opts();
+
+    clearScreen();
+    console(options);
+  });
 program.command("create").description("Create project directory");
 program.command("gen").description("Generating contract file and supporting files");
 program.command("manager").description("manage lots of token txs");

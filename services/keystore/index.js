@@ -91,6 +91,25 @@ const generateKeystore = async () => {
 
           console.log(`Generate Success!\nAddress: ${wallet.address}\nPrivateKey: ${wallet.privateKey}`);
         }
+      } else if (strict === "p") {
+        const { password } = await ask.askPlainPassphrase();
+        const validatePassword = await ask.askRepeatPlainPassphrase(password);
+
+        if (validatePassword) {
+          console.log("Password matched. Proceeding...");
+
+          const { keystoreDir } = await ask.askKeystoreDir();
+
+          const wallet = web3.eth.accounts.create();
+
+          await web3.eth.accounts.wallet.add(wallet.privateKey);
+          const keystore = web3.eth.accounts.wallet.encrypt(password);
+
+          fs.writeFileSync(`${keystoreDir}/keystore_${wallet.address}.json`, JSON.stringify(keystore[0]));
+          await web3.eth.accounts.wallet.remove(wallet.privateKey);
+
+          console.log(`Generate Success!\nAddress: ${wallet.address}\nPrivateKey: ${wallet.privateKey}`);
+        }
       }
     }
     // 분할 있는 키 생성
@@ -143,10 +162,19 @@ const generateKeystore = async () => {
 
 const unlockKeystore = async (from, keystore, threshold) => {
   try {
-    // dir라면 디렉토리 안에 파일을 읽고 파일이라면 파일만 읽기 추가하기
-    if (!fs.existsSync(keystore)) return new Error("Not Exist Keystore File");
+    const stats = fs.statSync(keystore);
 
-    const keystoreData = JSON.parse(fs.readFileSync(keystore).toString());
+    let keystoreData;
+    if (stats.isDirectory()) {
+      const files = fs.readdirSync(inputPath);
+      for (let file of files) {
+        keystoreData = JSON.parse(fs.readFileSync(path.join(keystore, file), "utf8").toString());
+      }
+    } else if (stats.isFile()) {
+      keystoreData = JSON.parse(fs.readFileSync(keystore).toString());
+    } else {
+      return new Error(`${keystore} is neither a directory nor a file.`);
+    }
 
     if (!web3.utils.isAddress(keystoreData.address)) return new Error("Invalid address at keystore");
     if (from !== null && !web3.utils.isAddress(from)) return new Error("Invalid address at from");

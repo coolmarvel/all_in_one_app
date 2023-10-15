@@ -1,6 +1,7 @@
 const inquirer = require("inquirer");
 const fs = require("fs");
 
+// 키 분할을 얼만큼 할지 선택하는 로직
 const askSplit = () => {
   const questions = [
     {
@@ -19,6 +20,7 @@ const askSplit = () => {
   return split;
 };
 
+// 분할 된 키의 임계점을 선택하는 로직
 const askThreshold = (split) => {
   const question = [
     {
@@ -37,6 +39,7 @@ const askThreshold = (split) => {
   return threshold;
 };
 
+// 규격화된 패스워드 설정을 할 지 선택하는 로직
 const askStrict = () => {
   const questions = [
     {
@@ -51,6 +54,7 @@ const askStrict = () => {
   return strict;
 };
 
+// 규격화된 패스워드 입력하는 로직
 const askStrictPassphrase = () => {
   const questions = [
     {
@@ -69,6 +73,7 @@ const askStrictPassphrase = () => {
   return passphrase;
 };
 
+// 규격화된 패스워드 확인하는 로직
 const askRepeatStrictPassphrase = (password) => {
   const questions = [
     {
@@ -85,6 +90,42 @@ const askRepeatStrictPassphrase = (password) => {
   return inquirer.prompt(questions);
 };
 
+// 약한 패스워드 입력하는 로직
+const askPlainPassphrase = () => {
+  const question = [
+    {
+      type: "password",
+      name: "password",
+      message: "Passphrase : ",
+      validate: (value) => {
+        const valid = value.length > 0;
+        return valid || "Password does not meet the requirements";
+      },
+    },
+  ];
+  const passphrase = inquirer.prompt(question);
+
+  return passphrase;
+};
+
+// 약한 패스워드 확인하는 로직
+const askRepeatPlainPassphrase = (password) => {
+  const question = [
+    {
+      type: "password",
+      name: "password",
+      message: "Repeat Passphrase : ",
+      validate: function (value) {
+        return value === password || "Passwords do not match";
+      },
+    },
+  ];
+  const passphrase = inquirer.prompt(question);
+
+  return passphrase;
+};
+
+// 키스토어 저장 위치 입력하는 로직
 const askKeystoreDir = () => {
   const questions = [
     {
@@ -104,6 +145,7 @@ const askKeystoreDir = () => {
   return inquirer.prompt(questions);
 };
 
+// 분할 키스토어 저장 위치 입력하는 위치
 const askKeystoreSplitDir = (split, index) => {
   const questions = [
     {
@@ -123,6 +165,7 @@ const askKeystoreSplitDir = (split, index) => {
   return inquirer.prompt(questions);
 };
 
+// 분할된 키스토어 저장된 위치 입력하는 로직
 const askKeystoreCombineDir = (split, index) => {
   const questions = [
     {
@@ -151,4 +194,6 @@ module.exports = {
   askKeystoreCombineDir,
   askStrictPassphrase,
   askRepeatStrictPassphrase,
+  askPlainPassphrase,
+  askRepeatPlainPassphrase,
 };
