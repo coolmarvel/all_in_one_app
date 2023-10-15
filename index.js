@@ -62,6 +62,7 @@ program
   .description("Generating Account On Keystore")
   .action(async () => {
     const { generateKeystore } = require("./services/keystore");
+
     await generateKeystore();
   });
 program
@@ -85,7 +86,27 @@ program
 
     await unlockKeystore(from, keystore, threshold);
   });
-program.command("update").description("Updaging Passphrase Of Account On Keystore");
+program
+  .command("update")
+  .option("--from <value>", "tx sender")
+  .option("--keystore <value>", "the location where keystore")
+  .option("--threshold <value>", "threshold to recover passphrase", 1)
+  .description("Updaging Passphrase Of Account On Keystore")
+  .action(async () => {
+    const { updateKeystore } = require("./services/keystore");
+
+    const options = program.opts();
+
+    let from = null;
+    let threshold = 1;
+    let keystore = null;
+
+    if (options.from) from = options.from;
+    if (options.keystore) keystore = options.keystore;
+    if (options.threshold) threshold = parseInt(options.threshold);
+
+    await updateKeystore(from, keystore, threshold);
+  });
 program
   .command("console")
   .description("Running console")

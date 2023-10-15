@@ -166,7 +166,7 @@ const unlockKeystore = async (from, keystore, threshold) => {
 
     let keystoreData;
     if (stats.isDirectory()) {
-      const files = fs.readdirSync(inputPath);
+      const files = fs.readdirSync(keystore);
       for (let file of files) {
         keystoreData = JSON.parse(fs.readFileSync(path.join(keystore, file), "utf8").toString());
       }
@@ -216,6 +216,8 @@ const unlockKeystore = async (from, keystore, threshold) => {
         const wallet = await web3.eth.accounts.wallet.decrypt([keystoreData], origin);
 
         if (wallet) console.log(`Unlock success!\nAddress: ${wallet[0].address}`);
+
+        return wallet;
       }
     }
   } catch (error) {
@@ -224,4 +226,72 @@ const unlockKeystore = async (from, keystore, threshold) => {
   }
 };
 
-module.exports = { generateKeystore, unlockKeystore };
+const updateKeystore = async (from, keystore, threshold) => {
+  try {
+    const wallet = await unlockKeystore(from, keystore, threshold);
+
+    console.log("From now on, we will create a new passphrase.\n");
+
+    if (threshold === 1) {
+    } else if (threshold > 1) {
+      const { split } = await ask.askSplit();
+      console.log(`splitN: ${split}`);
+
+      if (split === 1) {
+      } else if (split > 1) {
+        const { threshold } = await ask.askThreshold(split);
+        console.log(`threshold: ${threshold}`);
+
+        const passphrase = await randPassphrase(16); // 랜덤 패스워드 생성
+
+        const encoder = new TextEncoder();
+        const passphraseBytes = encoder.encode(passphrase); // 패스워드 16바이트로 인코딩
+
+        let shares = shamir.split(constantBytes, split, threshold, passphraseBytes); // sss로 분할
+
+        let keystoreDir = "";
+        for (let i = 0; i < split; i++) {
+          ({ keystoreDir } = await ask.askKeystoreSplitDir(split, i + 1));
+          console.log(
+            "Enter the password of new account.\nⓥ 13 or more characters\nⓥ 1 or more special characters\nⓥ 1 or more big letters\nⓥ 1 or more digits\n"
+          );
+          if (!fs.existsSync(`${keystoreDir}`)) fs.mkdirSync(`${keystoreDir}`);
+
+          const { password } = await ask.askStrictPassphrase();
+          const validatePassword = await ask.askRepeatStrictPassphrase(password);
+
+          if (validatePassword) {
+            console.log("Passwords matched. Proceeding...");
+
+            shares[i + 1] = await encrypt(shares[i + 1], password); // 분할된 패스워드를 유저의 비밀번호로 암호화
+            const json = { Index: i + 1, Share: Buffer.from(shares[i + 1]).toString("base64") };
+
+            if (!fs.existsSync(`${keystoreDir}/passphrase`)) fs.mkdirSync(`${keystoreDir}/passphrase`);
+            fs.writeFileSync(`${keystoreDir}/passphrase/share.sss`, JSON.stringify(json));
+          }
+        }
+
+        await web3.eth.accounts.wallet.add(wallet[0].privateKey);
+        const keystoreJSON = web3.eth.accounts.wallet.encrypt(passphrase);
+
+        const stats = fs.statSync(keystore);
+
+        if (stats.isDirectory()) {
+          fs.writeFileSync(`${keystore}/keystore_${wallet[0].address}.json`, JSON.stringify(keystoreJSON[0]));
+        } else if (stats.isFile()) {
+          fs.writeFileSync(`${keystore}`, JSON.stringify(keystoreJSON[0]));
+        } else {
+          return new Error(`${keystore} is neither a directory nor a file.`);
+        }
+
+        await web3.eth.accounts.wallet.remove(wallet[0].privateKey);
+
+        console.log(`Update Success!\nAddress: ${wallet[0].address}\nPrivateKey: ${wallet[0].privateKey}`);
+      }
+    }
+  } catch (error) {
+    console.error(error.message);
+  }
+};
+
+module.exports = { generateKeystore, unlockKeystore, updateKeystore };
