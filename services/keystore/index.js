@@ -167,7 +167,9 @@ const unlockKeystore = async (from, keystore, threshold) => {
     let keystoreData;
     if (stats.isDirectory()) {
       const files = fs.readdirSync(keystore);
-      for (let file of files) {
+      for (const file of files) {
+        const fileStats = fs.statSync(`${keystore}/${file}`);
+        if (fileStats.isDirectory()) continue;
         keystoreData = JSON.parse(fs.readFileSync(path.join(keystore, file), "utf8").toString());
       }
     } else if (stats.isFile()) {
@@ -186,7 +188,7 @@ const unlockKeystore = async (from, keystore, threshold) => {
     if (!web3.utils.checkAddressChecksum(fromAddress)) return new Error("Invalid BIP39 checksum at from");
 
     if (threshold === 1) {
-      const { password } = await ask.askStrictPassphrase();
+      const { password } = await ask.askPlainPassphrase();
 
       const wallet = await web3.eth.accounts.wallet.decrypt([keystoreData], password);
 
@@ -205,7 +207,7 @@ const unlockKeystore = async (from, keystore, threshold) => {
           const { password } = await ask.askStrictPassphrase();
 
           const share = await decrypt(ciphertextBytes, password);
-          shares[i + 1] = share;
+          shares[sssFile.Index] = share;
         }
 
         const originBytes = shamir.join(shares);
@@ -238,6 +240,7 @@ const updateKeystore = async (from, keystore, threshold) => {
       console.log(`splitN: ${split}`);
 
       if (split === 1) {
+        const { strict } = await ask.askStrict();
       } else if (split > 1) {
         const { threshold } = await ask.askThreshold(split);
         console.log(`threshold: ${threshold}`);
@@ -277,7 +280,12 @@ const updateKeystore = async (from, keystore, threshold) => {
         const stats = fs.statSync(keystore);
 
         if (stats.isDirectory()) {
-          fs.writeFileSync(`${keystore}/keystore_${wallet[0].address}.json`, JSON.stringify(keystoreJSON[0]));
+          const files = fs.readdirSync(keystore);
+          for (const file of files) {
+            const fileStats = fs.statSync(`${keystore}/${file}`);
+            if (fileStats.isDirectory()) continue;
+            fs.writeFileSync(`${keystore}/keystore_${wallet[0].address}.json`, JSON.stringify(keystoreJSON[0]));
+          }
         } else if (stats.isFile()) {
           fs.writeFileSync(`${keystore}`, JSON.stringify(keystoreJSON[0]));
         } else {
