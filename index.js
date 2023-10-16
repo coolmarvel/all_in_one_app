@@ -3,8 +3,8 @@ const readline = require("readline");
 const path = require("path");
 
 const major_version = 1;
-const minor_version = 0;
-const patch_version = 1;
+const minor_version = 1;
+const patch_version = 0;
 
 const git_commit = "";
 const app_version = `v${major_version}.${minor_version}.${patch_version}`;
@@ -123,8 +123,6 @@ program
 
     const options = program.opts();
 
-    console.log("\nCompile Contracts...\n");
-
     const dir = path.join(__dirname, "contracts");
     const necessary = [
       path.join(dir, "Registry/Registry.sol"),
@@ -133,6 +131,7 @@ program
       path.join(dir, "openzeppelin-contracts/token/ERC1155/ERC1155.sol"),
     ];
 
+    console.log("\nCompile Contracts...\n");
     const compiled = [];
     for (const sourceFile of necessary) {
       const data = await compileSolidity(sourceFile);

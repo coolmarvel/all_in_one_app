@@ -31,7 +31,25 @@ module.exports = {
   async app(options, compiled) {
     const vorpal = require("vorpal")();
 
-    // console.log(compiled.length);
+    console.log(`
+How to use:\n
+  deploy <contract name> <params>
+  address <contract name>
+  call <contract name> <method> <params>
+  pcall <proxy name> <logic name> <method> <params>
+  exec <contract name> <method> <params>
+  exec <address> <contract name> <method> <params>
+  pexec <proxy name> <logic name> <method> <params>
+  eventlog <contract name> <event name>
+  eventlog <address> <logic name> <event name>
+  balance <address>
+  transfercoin <address>
+  readable <hex>
+  calldata <contract name> <method> <params>
+  compile
+  clear
+  write
+  abi\n`);
 
     vorpal.delimiter(">>").show();
 

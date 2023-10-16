@@ -54,8 +54,6 @@ const slurpFile = (sourceFile) => {
 };
 
 const compileSolidity = (sourceFile) => {
-  console.log(`sourceFile ${sourceFile}`);
-
   return new Promise(async (resolve, reject) => {
     try {
       const file = await slurpFile(sourceFile);
@@ -72,6 +70,7 @@ const compileSolidity = (sourceFile) => {
         data.metadata = output.contracts[file.name][contract].metadata;
         data.bytecode = output.contracts[file.name][contract].evm.bytecode.object;
       }
+      console.log(`sourceFile ${sourceFile}`);
 
       resolve(data);
     } catch (error) {
