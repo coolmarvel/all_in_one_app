@@ -113,15 +113,34 @@ program
   .option("--keystore <value>", "the location where keystore")
   .option("--threshold <value>", "threshold to recover passphrase", 1)
   .option("--config <value>", "the location where the configuration file", "./config.toml")
-  .option("--allow", "allow to sign tx without check process")
   .option("--unlock", "if true, from key will be not changed to the lock state after signing first tx")
-  .action(() => {
-    const { console, clearScreen } = require("./services/console");
+  .option("--allow", "allow to sign tx without check process")
+  .option("--from <value>", "tx sender")
+  .option("--datadir <value>", "the location where raw txs", "./data")
+  .action(async () => {
+    const { app, clearScreen } = require("./services/console");
+    const compileSolidity = require("./services/compiler");
 
     const options = program.opts();
 
-    clearScreen();
-    console(options);
+    console.log("\nCompile Contracts...\n");
+
+    const dir = path.join(__dirname, "contracts");
+    const necessary = [
+      path.join(dir, "Registry/Registry.sol"),
+      path.join(dir, "openzeppelin-contracts/token/ERC20/ERC20.sol"),
+      path.join(dir, "openzeppelin-contracts/token/ERC721/ERC721.sol"),
+      path.join(dir, "openzeppelin-contracts/token/ERC1155/ERC1155.sol"),
+    ];
+
+    const compiled = [];
+    for (const sourceFile of necessary) {
+      const data = await compileSolidity(sourceFile);
+      compiled.push(data);
+    }
+
+    await clearScreen();
+    await app(options, compiled);
   });
 program.command("create").description("Create project directory");
 program.command("gen").description("Generating contract file and supporting files");

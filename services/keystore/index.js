@@ -22,15 +22,14 @@ const randPassphrase = async (n) => {
 
 const constantBytes = (size) => Buffer.alloc(size, "a");
 
+// 유저의 분할된 패스워드를 암호화
 const encrypt = (share, password) => {
   return new Promise((resolve, reject) => {
     try {
       const hash = CryptoJS.SHA3(password, { outputLength: 256 });
       const wordArray = CryptoJS.lib.WordArray.create(hash.words.slice(0, 4));
       const keyBytes = new Uint8Array(
-        wordArray.words
-          .map((word) => [(word >>> 24) & 0xff, (word >>> 16) & 0xff, (word >>> 8) & 0xff, word & 0xff])
-          .flat()
+        wordArray.words.map((word) => [(word >>> 24) & 0xff, (word >>> 16) & 0xff, (word >>> 8) & 0xff, word & 0xff]).flat()
       );
 
       const aesCtr = new aes.ModeOfOperation.ctr(keyBytes);
@@ -43,15 +42,14 @@ const encrypt = (share, password) => {
   });
 };
 
+// 유저의 암호화된 패스워드를 복호화
 const decrypt = (ciphertextBytes, password) => {
   return new Promise((resolve, reject) => {
     try {
       const hash = CryptoJS.SHA3(password, { outputLength: 256 });
       const wordArray = CryptoJS.lib.WordArray.create(hash.words.slice(0, 4));
       const keyBytes = new Uint8Array(
-        wordArray.words
-          .map((word) => [(word >>> 24) & 0xff, (word >>> 16) & 0xff, (word >>> 8) & 0xff, word & 0xff])
-          .flat()
+        wordArray.words.map((word) => [(word >>> 24) & 0xff, (word >>> 16) & 0xff, (word >>> 8) & 0xff, word & 0xff]).flat()
       );
 
       const aesCtr = new aes.ModeOfOperation.ctr(keyBytes);
@@ -64,6 +62,7 @@ const decrypt = (ciphertextBytes, password) => {
   });
 };
 
+// 키스토어 생성 및 암호화
 const generateKeystore = async () => {
   try {
     const { split } = await ask.askSplit();
@@ -160,6 +159,7 @@ const generateKeystore = async () => {
   }
 };
 
+// 키스토어 복호화
 const unlockKeystore = async (from, keystore, threshold) => {
   try {
     const stats = fs.statSync(keystore);
@@ -193,6 +193,8 @@ const unlockKeystore = async (from, keystore, threshold) => {
       const wallet = await web3.eth.accounts.wallet.decrypt([keystoreData], password);
 
       if (wallet) console.log(`Unlock success!\nAddress: ${wallet[0].address}`);
+
+      return wallet;
     } else if (threshold > 1) {
       if (keystoreAddress === fromAddress) {
         const shares = {};
@@ -224,24 +226,125 @@ const unlockKeystore = async (from, keystore, threshold) => {
     }
   } catch (error) {
     console.error(error.message);
-    if (error.message.includes("possibly wrong password")) await unlockKeystore(from, keystore, threshold);
+    if (error.message.includes("possibly wrong password")) return await unlockKeystore(from, keystore, threshold);
   }
 };
 
+// 키스토어 업데이트
 const updateKeystore = async (from, keystore, threshold) => {
   try {
     const wallet = await unlockKeystore(from, keystore, threshold);
-
     console.log("From now on, we will create a new passphrase.\n");
 
+    // 분할되지 않은 키스토어의 암호를 업데이트할 때
     if (threshold === 1) {
-    } else if (threshold > 1) {
+      const { strict } = await ask.askStrict();
+
+      if (strict === "default") {
+        const { password } = await ask.askStrictPassphrase();
+        const validatePassword = await ask.askRepeatStrictPassphrase(password);
+
+        if (validatePassword) {
+          console.log("Passwords matched. Proceeding...");
+
+          await web3.eth.accounts.wallet.add(wallet[0].privateKey);
+          const keystoreJSON = web3.eth.accounts.wallet.encrypt(password);
+
+          const stats = fs.statSync(keystore);
+
+          if (stats.isDirectory()) {
+            const files = fs.readdirSync(keystore);
+            for (const file of files) {
+              const fileStats = fs.statSync(`${keystore}/${file}`);
+              if (fileStats.isDirectory()) continue;
+              fs.writeFileSync(`${keystore}/keystore_${wallet[0].address}.json`, JSON.stringify(keystoreJSON[0]));
+            }
+          } else if (stats.isFile()) {
+            fs.writeFileSync(`${keystore}`, JSON.stringify(keystoreJSON[0]));
+          } else {
+            return new Error(`${keystore} is neither a directory nor a file.`);
+          }
+
+          await web3.eth.accounts.wallet.remove(wallet[0].privateKey);
+
+          console.log(`Update Success!\nAddress: ${wallet[0].address}\nPrivateKey: ${wallet[0].privateKey}`);
+        }
+      } else if (strict === "p") {
+        const { password } = await ask.askPlainPassphrase();
+        const validatePassword = await ask.askRepeatPlainPassphrase(password);
+
+        if (validatePassword) {
+          console.log("Passwords matched. Proceeding...");
+
+          await web3.eth.accounts.wallet.add(wallet[0].privateKey);
+          const keystoreJSON = web3.eth.accounts.wallet.encrypt(password);
+
+          const stats = fs.statSync(keystore);
+
+          if (stats.isDirectory()) {
+            const files = fs.readdirSync(keystore);
+            for (const file of files) {
+              const fileStats = fs.statSync(`${keystore}/${file}`);
+              if (fileStats.isDirectory()) continue;
+              fs.writeFileSync(`${keystore}/keystore_${wallet[0].address}.json`, JSON.stringify(keystoreJSON[0]));
+            }
+          } else if (stats.isFile()) {
+            fs.writeFileSync(`${keystore}`, JSON.stringify(keystoreJSON[0]));
+          } else {
+            return new Error(`${keystore} is neither a directory nor a file.`);
+          }
+
+          await web3.eth.accounts.wallet.remove(wallet[0].privateKey);
+
+          console.log(`Update Success!\nAddress: ${wallet[0].address}\nPrivateKey: ${wallet[0].privateKey}`);
+        }
+      }
+    } 
+    // 분할되어 있는 키스토어의 암호를 업데이트할 때
+    else if (threshold > 1) {
       const { split } = await ask.askSplit();
       console.log(`splitN: ${split}`);
 
+      // 분할 없는 키스토어로 업데이트
       if (split === 1) {
         const { strict } = await ask.askStrict();
-      } else if (split > 1) {
+
+        if (strict === "default") {
+          const { password } = await ask.askStrictPassphrase();
+          const validatePassword = await ask.askRepeatStrictPassphrase(password);
+
+          if (validatePassword) {
+            console.log("Passwords matched. Proceeding...");
+
+            await web3.eth.accounts.wallet.add(wallet[0].privateKey);
+            const keystoreJSON = web3.eth.accounts.wallet.encrypt(password);
+
+            const stats = fs.statSync(keystore);
+
+            if (stats.isDirectory()) {
+              const files = fs.readdirSync(keystore);
+              for (const file of files) {
+                const fileStats = fs.statSync(`${keystore}/${file}`);
+                if (fileStats.isDirectory()) continue;
+                fs.writeFileSync(`${keystore}/keystore_${wallet[0].address}.json`, JSON.stringify(keystoreJSON[0]));
+              }
+            } else if (stats.isFile()) {
+              fs.writeFileSync(`${keystore}`, JSON.stringify(keystoreJSON[0]));
+            } else {
+              return new Error(`${keystore} is neither a directory nor a file.`);
+            }
+
+            await web3.eth.accounts.wallet.remove(wallet[0].privateKey);
+
+            console.log(`Update Success!\nAddress: ${wallet[0].address}\nPrivateKey: ${wallet[0].privateKey}`);
+          }
+        } else if (strict === "p") {
+          const { password } = await ask.askPlainPassphrase();
+          const validatePassword = await ask.askRepeatPlainPassphrase(password);
+        }
+      }
+      // 분할 있는 키스토어로 업데이트
+      else if (split > 1) {
         const { threshold } = await ask.askThreshold(split);
         console.log(`threshold: ${threshold}`);
 

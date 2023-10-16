@@ -1,35 +1,83 @@
+const fs = require("fs");
+const path = require("path");
 const solc = require("solc");
 
-var input = {
-  language: "Solidity",
-  sources: {
-    "test.sol": {
-      content: 'import "lib.sol"; contract C { function f() public { L.f(); } }',
-    },
-  },
-  settings: {
-    outputSelection: {
-      "*": {
-        "*": ["*"],
-      },
-    },
-  },
+const startDir = path.join(__dirname, "../../contracts");
+
+const findSolFiles = (dir, fileList = []) => {
+  let files = fs.readdirSync(dir);
+
+  files.forEach(async (file) => {
+    let filePath = path.join(dir, file);
+    let stat = fs.statSync(filePath);
+
+    if (stat.isDirectory()) {
+      fileList = findSolFiles(filePath, fileList);
+    } else if (filePath.endsWith(".sol")) {
+      fileList.push(filePath);
+    }
+  });
+
+  return fileList;
 };
 
-function findImports(path) {
-  if (path === "lib.sol")
-    return {
-      contents: "library L { function f() internal returns (uint) { return 7; } }",
-    };
-  else return { error: "File not found" };
+// Define the findImports callback function
+function findImports(importPath) {
+  const solFiles = findSolFiles(startDir);
+
+  let matchedFile = solFiles.find((solFile) => solFile.includes(importPath));
+
+  if (matchedFile) {
+    let contents = fs.readFileSync(matchedFile, "utf8");
+    return { contents };
+  } else {
+    console.log(`No file found that includes ${importPath}`);
+    return null;
+  }
 }
 
-// New syntax (supported from 0.5.12, mandatory from 0.6.0)
-var output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
+const slurpFile = (sourceFile) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const name = path.basename(sourceFile, ".sol");
+      const content = fs.readFileSync(sourceFile, "utf8");
 
-// `output` here contains the JSON output as specified in the documentation
-for (var contractName in output.contracts["test.sol"]) {
-  console.log("abi: ", output.contracts["test.sol"][contractName].abi);
-  console.log("metadata: ", output.contracts["test.sol"][contractName].metadata);
-  console.log(contractName + ": " + output.contracts["test.sol"][contractName].evm.bytecode.object);
-}
+      const data = {};
+      data.name = `${name}.sol`;
+      data.content = content.toString();
+
+      resolve(data);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+const compileSolidity = (sourceFile) => {
+  console.log(`sourceFile ${sourceFile}`);
+
+  return new Promise(async (resolve, reject) => {
+    try {
+      const file = await slurpFile(sourceFile);
+
+      const input = { language: "Solidity", sources: {}, settings: { outputSelection: { "*": { "*": ["*"] } } } };
+      input.sources[file.name] = { content: file.content };
+
+      const output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
+
+      const data = {};
+      for (const contract in output.contracts[file.name]) {
+        data.contract = output.contracts[file.name][contract];
+        data.abi = output.contracts[file.name][contract].abi;
+        data.metadata = output.contracts[file.name][contract].metadata;
+        data.bytecode = output.contracts[file.name][contract].evm.bytecode.object;
+      }
+
+      resolve(data);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+};
+
+module.exports = compileSolidity;
