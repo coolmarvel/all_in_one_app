@@ -50,11 +50,9 @@ module.exports = {
     sign: { name: "sign", description: "Sign tx or msg from data dir" },
     transfercoin: { name: "transfercoin", description: "Transfer wemix coin to wallet" },
   },
-  // REPL Options
-  replOptions: {},
   // REPL Commands
-  replCommands: {
-    deploy: { name: "deploy", description: "Deploy contract" },
+  repl: {
+    deploy: { name: "deploy", description: "Deploy contract", help: "balance [address]: Check the balance of the specified address" },
     call: { name: "call", description: "Call" },
     pcall: { name: "pcall", description: "Call proxy" },
     exec: { name: "exec", description: "Execute" },
@@ -68,6 +66,7 @@ module.exports = {
     readable: { name: "readable" },
     abi: { name: "abi" },
     clear: { name: "clear" },
+    help: { name: "help" },
   },
   // REPL How To Use
   replHowToUse: `

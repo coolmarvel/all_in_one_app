@@ -55,7 +55,21 @@ program
   .option(options.payer.name, options.payer.usage);
 
 // Add commands here using program.command(...)
-program.command(commands.deploy.name).description(commands.deploy.description);
+program
+  .command(commands.deploy.name)
+  .description(commands.deploy.description)
+  .option(options.from.name, options.from.usage)
+  .option(options.project.name, options.project.usage)
+  .option(options.keystore.name, options.keystore.usage)
+  .option(options.threshold.name, options.threshold.usage, options.threshold.value)
+  .action(async () => {
+    const options = program.opts();
+
+    const deploy = require("./services/deploy");
+
+    await deploy(options);
+  });
+
 program
   .command(commands.genkey.name)
   .description(commands.genkey.description)
@@ -64,6 +78,7 @@ program
 
     await generateKeystore();
   });
+
 program
   .command(commands.check.name)
   .description(commands.check.description)
@@ -85,6 +100,7 @@ program
 
     await unlockKeystore(from, keystore, threshold);
   });
+
 program
   .command(commands.update.name)
   .description(commands.update.description)
@@ -106,6 +122,7 @@ program
 
     await updateKeystore(from, keystore, threshold);
   });
+
 program
   .command(commands.console.name)
   .description(commands.console.description)
@@ -117,7 +134,8 @@ program
   .option(options.dataDir.name, options.dataDir.usage, options.dataDir.value)
   .option(options.threshold.name, options.threshold.usage, options.threshold.value)
   .action(async () => {
-    const { app, clearScreen } = require("./services/console");
+    const { interactiveCLI, clearScreen } = require("./services/console");
+    // const { app, clearScreen } = require("./services/console");
     const compileSolidity = require("./services/compiler");
 
     const options = program.opts();
@@ -138,8 +156,10 @@ program
     }
 
     await clearScreen();
-    await app(options, compiled);
+    // await app(options, compiled);
+    await interactiveCLI(options, compiled);
   });
+
 program.command(commands.create.name).description(commands.create.description);
 program.command(commands.gen.name).description(commands.gen.description);
 program.command(commands.manager.name).description(commands.manager.description);

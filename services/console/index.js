@@ -1,86 +1,113 @@
-const { replOptions, replCommands, replHowToUse } = require("../flags");
+const { repl, replHowToUse } = require("../flags");
 
-module.exports = {
-  async clearScreen() {
-    const osType = process.platform;
-    let command;
+const color = require("../../utils/console");
+const global = require("../../utils/global");
+const getProvider = require("../../utils/provider");
 
-    switch (osType) {
-      case "win32":
-        command = "\x1Bc";
+const { getNonce, getBalance } = require("../sender");
+
+function clearScreen() {
+  const osType = process.platform;
+  let command;
+
+  switch (osType) {
+    case "win32":
+      command = "\x1Bc";
+      break;
+    default:
+      command = "\x1B[2J\x1B[0;0f";
+  }
+
+  process.stdout.write(command);
+}
+
+const inquirer = require("inquirer");
+
+async function interactiveCLI(options) {
+  const web3 = await getProvider();
+
+  let nonce;
+  if (options.from) {
+    nonce = await getNonce(web3, options.from);
+    console.log(`
+> Created sender client
+  - Address: ${options.from}
+  - Nonce: ${nonce}`);
+  } else {
+    nonce = await getNonce(web3, global.owner);
+    console.log(`
+> Created sender client
+  - Address: ${global.owner}
+  - Nonce: ${nonce}`);
+  }
+
+  console.log(replHowToUse);
+
+  while (true) {
+    const response = await inquirer.prompt([{ type: "input", name: "command", message: " " }]);
+
+    const input = response.command.trim();
+    const [command, ...args] = input.split(" ");
+
+    if (command === "") continue;
+    if (command === "exit") break;
+
+    switch (command) {
+      case repl.help.name:
+        console.log(replHowToUse);
+        break;
+      case repl.deploy.name:
+        console.log("[Deploy]");
+        break;
+      case repl.call.name:
+        console.log("[Call]");
+        break;
+      case repl.pcall.name:
+        console.log("[Call proxy]");
+        break;
+      case repl.exec.name:
+        console.log("[Execute]");
+        break;
+      case repl.pexec.name:
+        console.log("[Execute proxy]");
+        break;
+      case repl.address.name:
+        console.log("[Get contract address]");
+        break;
+      case repl.write.name:
+        console.log("[Write tx files]");
+        break;
+      case repl.balance.name:
+        const address = args[0];
+
+        const { balanceWei, balanceEth } = await getBalance(web3, address);
+        console.log(color.yellow, `\n${address}`);
+        console.log(color.white, `[wei] ${balanceWei}`);
+        console.log(color.white, `[eth] ${balanceEth}\n`);
+
+        break;
+      case repl.transfercoin.name:
+        console.log("[Transfer wemix coin]");
+        break;
+      case repl.eventlog.name:
+        console.log("[Search event logs]");
+        break;
+      case repl.compile.name:
+        console.log("[Recompile contracts]");
+        break;
+      case repl.readable.name:
+        console.log("[readable]");
+        break;
+      case repl.abi.name:
+        console.log("[ABI]");
+        break;
+      case repl.clear.name:
+        clearScreen();
         break;
       default:
-        command = "\x1B[2J\x1B[0;0f";
+        console.log(`Unknown command: ${command}`);
     }
+  }
+}
 
-    process.stdout.write(command);
-  },
-  async app(options, compiled) {
-    const vorpal = require("vorpal")();
-    console.log(replHowToUse);
-    vorpal.delimiter(">>").show();
-
-    // console.log(options);
-
-    vorpal
-      .command(replCommands.deploy.name, replCommands.deploy.description)
-      // .option()
-      .action(async (args, callback) => {
-        console.log("hi");
-        console.log(args);
-        await callback();
-      });
-    vorpal.command(replCommands.call.name, replCommands.call.description).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.pcall.name, replCommands.pcall.description).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.exec.name, replCommands.exec.description).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.pexec.name, replCommands.pexec.description).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.address.name, replCommands.address.description).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.write.name, replCommands.write.description).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.balance.name, replCommands.balance.description).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.transfercoin.name, replCommands.transfercoin.description).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.eventlog.name, replCommands.eventlog.description).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.compile.name, replCommands.compile.description).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.readable.name).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.abi.name).action((args, callback) => {
-      console.log("hi");
-      callback();
-    });
-    vorpal.command(replCommands.clear.name).action((args, callback) => {
-      clearScreen();
-      callback();
-    });
-  },
-};
+module.exports = { clearScreen, interactiveCLI };
