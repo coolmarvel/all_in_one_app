@@ -134,8 +134,6 @@ program
   .option(options.dataDir.name, options.dataDir.usage, options.dataDir.value)
   .option(options.threshold.name, options.threshold.usage, options.threshold.value)
   .action(async () => {
-    const { interactiveCLI, clearScreen } = require("./services/console");
-    // const { app, clearScreen } = require("./services/console");
     const compileSolidity = require("./services/compiler");
 
     const options = program.opts();
@@ -155,9 +153,13 @@ program
       compiled.push(data);
     }
 
+    const { interactiveCLI, clearScreen } = require("./services/console");
     await clearScreen();
-    // await app(options, compiled);
     await interactiveCLI(options, compiled);
+
+    // const { clearScreen, app } = require("./services/console");
+    // await clearScreen();
+    // await app(options);
   });
 
 program.command(commands.create.name).description(commands.create.description);

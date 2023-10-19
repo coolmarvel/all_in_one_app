@@ -6,7 +6,7 @@ const getProvider = require("../../utils/provider");
 
 const { getNonce, getBalance } = require("../sender");
 
-function clearScreen() {
+async function clearScreen() {
   const osType = process.platform;
   let command;
 
@@ -44,7 +44,7 @@ async function interactiveCLI(options) {
   console.log(replHowToUse);
 
   while (true) {
-    const response = await inquirer.prompt([{ type: "input", name: "command", message: " " }]);
+    const response = await inquirer.prompt([{ type: "input", name: "command", message: ">>" }]);
 
     const input = response.command.trim();
     const [command, ...args] = input.split(" ");
@@ -111,3 +111,52 @@ async function interactiveCLI(options) {
 }
 
 module.exports = { clearScreen, interactiveCLI };
+
+// const readline = require("readline");
+
+// const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+// async function app() {
+//   const commands = {
+//     deploy: {
+//       description: "Greet the user",
+//       action(name) {
+//         console.log(`Hello, $보라수트헨리!`);
+//         rl.prompt();
+//       },
+//     },
+//     exit: {
+//       description: "Exit the application",
+//       action() {
+//         rl.close();
+//         process.exit(0);
+//       },
+//     },
+//     clear: {
+//       action() {
+//         clearScreen();
+//         rl.prompt();
+//       },
+//     },
+//   };
+
+//   rl.on("line", (input) => {
+//     const [command, ...args] = input.trim().split(" ");
+
+//     if (command === "") {
+//       return rl.prompt();
+//     }
+
+//     if (commands[command]) {
+//       commands[command].action(...args);
+//     } else {
+//       console.log(`Unknown command "${command}". Available commands are ${Object.keys(commands).join(", ")}.`);
+//       rl.prompt();
+//     }
+//   });
+
+//   rl.setPrompt(">> ");
+//   rl.prompt();
+// }
+
+// module.exports = { clearScreen, app };

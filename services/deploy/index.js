@@ -1,10 +1,12 @@
 const fs = require("fs");
 const path = require("path");
 const solc = require("solc");
+const Utils = require("ethereumjs-util");
 
 const getProvider = require("../../utils/provider");
 
-const startDir = path.join(__dirname, "../../contracts");
+const importDir = path.join(__dirname, "../../contracts");
+const projectDir = path.join(__dirname, "../../projects");
 
 const findSolFiles = (dir, fileList = []) => {
   const files = fs.readdirSync(dir);
@@ -24,7 +26,7 @@ const findSolFiles = (dir, fileList = []) => {
 };
 
 function findImports(importPath) {
-  const solFiles = findSolFiles(startDir);
+  const solFiles = findSolFiles(importDir);
 
   let matchedFile = solFiles.find((solFile) => solFile.includes(importPath));
 
@@ -84,7 +86,7 @@ const deploy = async (options) => {
   try {
     const web3 = await getProvider();
 
-    const solFiles = findSolFiles(startDir);
+    const solFiles = findSolFiles(projectDir);
 
     let deployFiles = [];
     solFiles.forEach((file) => {

@@ -8,6 +8,7 @@
     "caver-js": "^1.10.2",
     "commander": "^11.0.0",
     "crypto-js": "^4.1.1",
+    "ethereumjs-util": "^7.1.5",
     "inquirer": "^8.0.0",
     "prettier": "^3.0.3",
     "prettier-plugin-solidity": "^1.1.3",
@@ -17,7 +18,6 @@
     "shamirs-secret-sharing": "^1.0.1",
     "solc": "^0.8.21",
     "toml": "^3.0.0",
-    "vorpal": "^1.12.0",
     "web3": "1.10.0"
   }
 }
