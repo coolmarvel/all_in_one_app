@@ -160,7 +160,7 @@ const generateKeystore = async () => {
 };
 
 // 키스토어 복호화
-const unlockKeystore = async (from, keystore, threshold) => {
+const unlockKeystore = async (keystore, threshold) => {
   try {
     const stats = fs.statSync(keystore);
 
@@ -179,13 +179,10 @@ const unlockKeystore = async (from, keystore, threshold) => {
     }
 
     if (!web3.utils.isAddress(keystoreData.address)) return new Error("Invalid address at keystore");
-    if (from !== null && !web3.utils.isAddress(from)) return new Error("Invalid address at from");
 
     const keystoreAddress = web3.utils.toChecksumAddress(keystoreData.address);
-    const fromAddress = web3.utils.toChecksumAddress(from);
 
     if (!web3.utils.checkAddressChecksum(keystoreAddress)) return new Error("Invalid BIP39 checksum at keystore");
-    if (!web3.utils.checkAddressChecksum(fromAddress)) return new Error("Invalid BIP39 checksum at from");
 
     if (threshold === 1) {
       const { password } = await ask.askPlainPassphrase();
@@ -196,7 +193,7 @@ const unlockKeystore = async (from, keystore, threshold) => {
 
       return wallet;
     } else if (threshold > 1) {
-      if (keystoreAddress === fromAddress) {
+      if (keystoreAddress) {
         const shares = {};
         for (let i = 0; i < threshold; i++) {
           const { keystoreDir } = await ask.askKeystoreCombineDir(threshold, i + 1);
@@ -221,19 +218,19 @@ const unlockKeystore = async (from, keystore, threshold) => {
 
         if (wallet) console.log(`Unlock success!\nAddress: ${wallet[0].address}`);
 
-        return wallet;
+        return wallet[0];
       }
     }
   } catch (error) {
     console.error(error.message);
-    if (error.message.includes("possibly wrong password")) return await unlockKeystore(from, keystore, threshold);
+    if (error.message.includes("possibly wrong password")) return await unlockKeystore(keystore, threshold);
   }
 };
 
 // 키스토어 업데이트
-const updateKeystore = async (from, keystore, threshold) => {
+const updateKeystore = async (keystore, threshold) => {
   try {
-    const wallet = await unlockKeystore(from, keystore, threshold);
+    const wallet = await unlockKeystore(keystore, threshold);
     console.log("From now on, we will create a new passphrase.\n");
 
     // 분할되지 않은 키스토어의 암호를 업데이트할 때
@@ -299,7 +296,7 @@ const updateKeystore = async (from, keystore, threshold) => {
           console.log(`Update Success!\nAddress: ${wallet[0].address}\nPrivateKey: ${wallet[0].privateKey}`);
         }
       }
-    } 
+    }
     // 분할되어 있는 키스토어의 암호를 업데이트할 때
     else if (threshold > 1) {
       const { split } = await ask.askSplit();

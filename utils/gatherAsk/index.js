@@ -185,6 +185,18 @@ const askKeystoreCombineDir = (split, index) => {
   return inquirer.prompt(questions);
 };
 
+const askEnsureDeploy = (names) => {
+  const questions = [];
+  for (const name of names) {
+    const question = { type: "confirm", name: `${name}`, message: `Are you sure to deploy ${name} tx?`, default: true };
+    questions.push(question);
+  }
+
+  const answers = inquirer.prompt(questions);
+
+  return answers;
+};
+
 module.exports = {
   askSplit,
   askStrict,
@@ -196,4 +208,5 @@ module.exports = {
   askRepeatStrictPassphrase,
   askPlainPassphrase,
   askRepeatPlainPassphrase,
+  askEnsureDeploy,
 };

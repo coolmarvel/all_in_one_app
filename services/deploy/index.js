@@ -3,7 +3,11 @@ const path = require("path");
 const solc = require("solc");
 const Utils = require("ethereumjs-util");
 
+const ask = require("../../utils/gatherAsk");
 const getProvider = require("../../utils/provider");
+
+const { unlockKeystore } = require("../keystore");
+const { makeDynamicTx } = require("../transaction");
 
 const importDir = path.join(__dirname, "../../contracts");
 const projectDir = path.join(__dirname, "../../projects");
@@ -68,10 +72,12 @@ const compileSolidity = (sourceFile) => {
 
       const data = {};
       for (const contract in output.contracts[file.name]) {
-        data.contract = output.contracts[file.name][contract];
-        data.abi = output.contracts[file.name][contract].abi;
-        data.metadata = output.contracts[file.name][contract].metadata;
-        data.bytecode = output.contracts[file.name][contract].evm.bytecode.object;
+        // data.contract = output.contracts[file.name][contract];
+        data[file.name] = {
+          abi: output.contracts[file.name][contract].abi,
+          metadata: output.contracts[file.name][contract].metadata,
+          bytecode: output.contracts[file.name][contract].evm.bytecode.object,
+        };
       }
       console.log(`sourceFile ${sourceFile}`);
 
@@ -95,7 +101,38 @@ const deploy = async (options) => {
     // console.log(deployFiles);
 
     const compiled = await compileSolidity(deployFiles[0]);
-    console.log(compiled);
+
+    const names = [];
+    for (const key in compiled) {
+      const name = key.replace(/\.sol/g, "");
+      names.push(name);
+    }
+
+    const answers = await ask.askEnsureDeploy(names);
+    const wallet = await unlockKeystore(options.keystore, options.threshold);
+    for (const key in answers) {
+      if (answers[key] === true) {
+        const dynamicTx = await makeDynamicTx(web3, wallet.address, null, "0", compiled[`${key}.sol`].bytecode);
+
+        console.log(`
+
+     - ${key}
+     - ContractRegistry already exist
+     - type       : ${dynamicTx.type}
+     - contract   : ${key}
+     - chainID    : ${dynamicTx.chainId}
+     - from       : ${dynamicTx.from}
+     - to         : ${dynamicTx.to}
+     - nonce      : ${dynamicTx.nonce}
+     - gasFeeCap  : ${dynamicTx.maxPriorityFeePerGas}
+     - gasTipCap  : ${dynamicTx.maxFeePerGas}
+     - value      : ${dynamicTx.value}
+     - gasLimit   : ${dynamicTx.gas}
+
+     -> Deploy contract
+  `);
+      }
+    }
   } catch (error) {
     console.error(error.message);
   }

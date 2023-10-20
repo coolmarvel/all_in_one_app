@@ -1,3 +1,7 @@
+const global = require("../../utils/global");
+
+const { dUnsignedTxEncode } = require("./feeDelegateEncode");
+
 const makeLegacyTx = (web3, from, to, value, input) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -25,7 +29,7 @@ const makeLegacyTx = (web3, from, to, value, input) => {
   });
 };
 
-const makeDynamicTx = (web3, from, to, value) => {
+const makeDynamicTx = (web3, from, to, value, input) => {
   return new Promise(async (resolve, reject) => {
     try {
       const chainId = await web3.eth.getChainId();
@@ -46,7 +50,7 @@ const makeDynamicTx = (web3, from, to, value) => {
       dynamicTx.maxPriorityFeePerGas = web3.utils.toHex(maxPriorityFeePerGas);
       dynamicTx.to = to;
       dynamicTx.value = web3.utils.toHex(web3.utils.toWei(value, "ether"));
-      dynamicTx.input = "0x";
+      dynamicTx.input = input;
       dynamicTx.v = "0x0";
       dynamicTx.r = "0x0";
       dynamicTx.s = "0x0";
@@ -55,8 +59,6 @@ const makeDynamicTx = (web3, from, to, value) => {
       const hash = await dUnsignedTxEncode(dynamicTx);
       dynamicTx.hash = hash[0];
       dynamicTx.type = hash[1].slice(0, 4);
-
-      console.log(dynamicTx);
 
       resolve(dynamicTx);
     } catch (error) {
