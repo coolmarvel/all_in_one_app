@@ -98,7 +98,6 @@ const deploy = async (options) => {
     solFiles.forEach((file) => {
       if (file.includes(`${options.project}.sol`)) deployFiles.push(file);
     });
-    // console.log(deployFiles);
 
     const compiled = await compileSolidity(deployFiles[0]);
 
@@ -110,13 +109,42 @@ const deploy = async (options) => {
 
     const answers = await ask.askEnsureDeploy(names);
     const wallet = await unlockKeystore(options.keystore, options.threshold);
+
+    await web3.eth.accounts.wallet.add(wallet.privateKey);
+
     for (const key in answers) {
       if (answers[key] === true) {
-        const dynamicTx = await makeDynamicTx(web3, wallet.address, null, "0", compiled[`${key}.sol`].bytecode);
+        // const dynamicTx = await makeDynamicTx(web3, wallet.address, null, "0", compiled[`${key}.sol`].bytecode);
+
+        const abi = compiled[`${key}.sol`].abi;
+        const bytecode = compiled[`${key}.sol`].bytecode;
+
+        let gasLimit, maxFeePerGas, maxPriorityFeePerGas;
+
+        const contract = new web3.eth.Contract(abi);
+
+        const deployTx = contract.deploy({ data: `0x${bytecode}` }).encodeABI();
+        estimateGas = await web3.eth.estimateGas({ data: deployTx });
+        console.log(`gasLimit ${gasLimit}`);
+
+        const currentBlock = await web3.eth.getBlock("latest");
+
+        maxFeePerGas = currentBlock.baseFeePerGas * 2;
+        maxPriorityFeePerGas = web3.utils.toWei("2", "gwei");
+
+        const dynamicTx = {};
+        dynamicTx.from = wallet.address;
+        dynamicTx.data = `0x${bytecode}`;
+        dynamicTx.gas = gasLimit;
+        dynamicTx.maxPriorityFeePerGas = maxPriorityFeePerGas;
+        dynamicTx.maxFeePerGas = maxFeePerGas;
+        dynamicTx.value = web3.utils.toWei("0", "ether");
+        dynamicTx.nonce = await web3.eth.getTransactionCount(dynamicTx.from);
+        dynamicTx.chainId = await web3.eth.getChainId();
 
         console.log(`
 
-     - ${key}
+   - ${key}
      - ContractRegistry already exist
      - type       : ${dynamicTx.type}
      - contract   : ${key}
@@ -124,15 +152,22 @@ const deploy = async (options) => {
      - from       : ${dynamicTx.from}
      - to         : ${dynamicTx.to}
      - nonce      : ${dynamicTx.nonce}
-     - gasFeeCap  : ${dynamicTx.maxPriorityFeePerGas}
-     - gasTipCap  : ${dynamicTx.maxFeePerGas}
+     - gasFeeCap  : ${maxPriorityFeePerGas}
+     - gasTipCap  : ${maxFeePerGas}
      - value      : ${dynamicTx.value}
      - gasLimit   : ${dynamicTx.gas}
 
-     -> Deploy contract
-  `);
+   -> Deploy contract
+      `);
+
+        // const signedTx = await web3.eth.accounts.signTransaction(dynamicTx, wallet.privateKey);
+
+        // const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        // console.log(receipt);
       }
     }
+
+    await web3.eth.accounts.wallet.remove(wallet.address);
   } catch (error) {
     console.error(error.message);
   }

@@ -36,20 +36,20 @@ const makeDynamicTx = (web3, from, to, value, input) => {
       const block = await web3.eth.getBlock("latest");
       const baseFeePerGas = block.baseFeePerGas;
 
-      const maxPriorityFeePerGas = 2000000000;
+      const maxPriorityFeePerGas = 200000000000;
       const maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas;
 
       const nonce = await web3.eth.getTransactionCount(from);
 
       const dynamicTx = {};
       dynamicTx.from = from;
-      dynamicTx.chainId = web3.utils.toHex(chainId);
-      dynamicTx.nonce = web3.utils.toHex(nonce);
-      dynamicTx.gas = web3.utils.toHex(100000000);
-      dynamicTx.maxFeePerGas = web3.utils.toHex(maxFeePerGas);
-      dynamicTx.maxPriorityFeePerGas = web3.utils.toHex(maxPriorityFeePerGas);
+      dynamicTx.chainId = chainId;
+      dynamicTx.nonce = nonce;
+      dynamicTx.gas = "10000000";
+      dynamicTx.maxFeePerGas = maxFeePerGas;
+      dynamicTx.maxPriorityFeePerGas = maxPriorityFeePerGas;
       dynamicTx.to = to;
-      dynamicTx.value = web3.utils.toHex(web3.utils.toWei(value, "ether"));
+      dynamicTx.value = web3.utils.toWei(value, "ether");
       dynamicTx.input = input;
       dynamicTx.v = "0x0";
       dynamicTx.r = "0x0";
