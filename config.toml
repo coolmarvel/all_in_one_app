@@ -1,7 +1,7 @@
 [node]
 name = "testnet"
 mainnet_url = "https://api.wemix.com"
-testnet_url = 'https://api.test.wemix.com'
+testnet_url = "https://api.test.wemix.com"
 serviceId = "production"
 feepayer = "0x0000000000000000000000000000000000000000"
 #feepayer = "0xeafcd375e7868a351c1f24644cd435461dbf5945"

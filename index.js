@@ -90,15 +90,13 @@ program
 
     const options = program.opts();
 
-    let from = null;
     let threshold = 1;
     let keystore = null;
 
-    if (options.from) from = options.from;
     if (options.keystore) keystore = options.keystore;
     if (options.threshold) threshold = parseInt(options.threshold);
 
-    await unlockKeystore(from, keystore, threshold);
+    await unlockKeystore(keystore, threshold);
   });
 
 program
