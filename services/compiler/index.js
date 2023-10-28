@@ -23,12 +23,15 @@ const findSolFiles = (dir, fileList = []) => {
 
 // Define the findImports callback function
 function findImports(importPath) {
+  importPath = path.normalize(importPath);
+
   const solFiles = findSolFiles(startDir);
 
   let matchedFile = solFiles.find((solFile) => solFile.includes(importPath));
 
   if (matchedFile) {
     let contents = fs.readFileSync(matchedFile, "utf8");
+
     return { contents };
   } else {
     console.log(`No file found that includes ${importPath}`);
@@ -65,7 +68,6 @@ const compileSolidity = (sourceFile) => {
 
       const data = {};
       for (const contract in output.contracts[file.name]) {
-        data.contract = output.contracts[file.name][contract];
         data.abi = output.contracts[file.name][contract].abi;
         data.metadata = output.contracts[file.name][contract].metadata;
         data.bytecode = output.contracts[file.name][contract].evm.bytecode.object;

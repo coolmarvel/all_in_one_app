@@ -138,10 +138,10 @@ program
 
     const dir = path.join(__dirname, "contracts");
     const necessary = [
-      path.join(dir, "Registry/Registry.sol"),
-      path.join(dir, "openzeppelin-contracts/token/ERC20/ERC20.sol"),
-      path.join(dir, "openzeppelin-contracts/token/ERC721/ERC721.sol"),
-      path.join(dir, "openzeppelin-contracts/token/ERC1155/ERC1155.sol"),
+      path.normalize(path.join(dir, "Registry/Registry.sol")),
+      path.normalize(path.join(dir, "openzeppelin-contracts/token/ERC20/ERC20.sol")),
+      path.normalize(path.join(dir, "openzeppelin-contracts/token/ERC721/ERC721.sol")),
+      path.normalize(path.join(dir, "openzeppelin-contracts/token/ERC1155/ERC1155.sol")),
     ];
 
     console.log("\nCompile Contracts...\n");

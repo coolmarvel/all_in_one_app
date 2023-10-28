@@ -29,7 +29,7 @@ const encrypt = (share, password) => {
       const hash = CryptoJS.SHA3(password, { outputLength: 256 });
       const wordArray = CryptoJS.lib.WordArray.create(hash.words.slice(0, 4));
       const keyBytes = new Uint8Array(
-        wordArray.words.map((word) => [(word >>> 24) & 0xff, (word >>> 16) & 0xff, (word >>> 8) & 0xff, word & 0xff]).flat(),
+        wordArray.words.map((word) => [(word >>> 24) & 0xff, (word >>> 16) & 0xff, (word >>> 8) & 0xff, word & 0xff]).flat()
       );
 
       const aesCtr = new aes.ModeOfOperation.ctr(keyBytes);
@@ -49,7 +49,7 @@ const decrypt = (ciphertextBytes, password) => {
       const hash = CryptoJS.SHA3(password, { outputLength: 256 });
       const wordArray = CryptoJS.lib.WordArray.create(hash.words.slice(0, 4));
       const keyBytes = new Uint8Array(
-        wordArray.words.map((word) => [(word >>> 24) & 0xff, (word >>> 16) & 0xff, (word >>> 8) & 0xff, word & 0xff]).flat(),
+        wordArray.words.map((word) => [(word >>> 24) & 0xff, (word >>> 16) & 0xff, (word >>> 8) & 0xff, word & 0xff]).flat()
       );
 
       const aesCtr = new aes.ModeOfOperation.ctr(keyBytes);
@@ -127,7 +127,7 @@ const generateKeystore = async () => {
       for (let i = 0; i < split; i++) {
         ({ keystoreDir } = await ask.askKeystoreSplitDir(split, i + 1));
         console.log(
-          "Enter the password of new account.\nⓥ 13 or more characters\nⓥ 1 or more special characters\nⓥ 1 or more big letters\nⓥ 1 or more digits\n",
+          "Enter the password of new account.\nⓥ 13 or more characters\nⓥ 1 or more special characters\nⓥ 1 or more big letters\nⓥ 1 or more digits\n"
         );
         if (!fs.existsSync(`${keystoreDir}`)) fs.mkdirSync(`${keystoreDir}`);
 
@@ -162,6 +162,7 @@ const generateKeystore = async () => {
 // 키스토어 복호화
 const unlockKeystore = async (keystore, threshold) => {
   try {
+    console.log(keystore);
     const stats = fs.statSync(keystore);
 
     let keystoreData;
@@ -356,7 +357,7 @@ const updateKeystore = async (keystore, threshold) => {
         for (let i = 0; i < split; i++) {
           ({ keystoreDir } = await ask.askKeystoreSplitDir(split, i + 1));
           console.log(
-            "Enter the password of new account.\nⓥ 13 or more characters\nⓥ 1 or more special characters\nⓥ 1 or more big letters\nⓥ 1 or more digits\n",
+            "Enter the password of new account.\nⓥ 13 or more characters\nⓥ 1 or more special characters\nⓥ 1 or more big letters\nⓥ 1 or more digits\n"
           );
           if (!fs.existsSync(`${keystoreDir}`)) fs.mkdirSync(`${keystoreDir}`);
 

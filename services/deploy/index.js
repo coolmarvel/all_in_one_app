@@ -11,23 +11,6 @@ const { makeDynamicTx } = require("../transaction");
 const importDir = path.join(__dirname, "../../contracts");
 const projectDir = path.join(__dirname, "../../projects");
 
-// const findSolFiles = (dir, fileList = []) => {
-//   const files = fs.readdirSync(dir);
-
-//   files.forEach((file) => {
-//     let filePath = path.join(dir, file);
-//     let stat = fs.statSync(filePath);
-
-//     if (stat.isDirectory()) {
-//       fileList = findSolFiles(filePath, fileList);
-//     } else if (filePath.endsWith(".sol")) {
-//       fileList.push(filePath);
-//     }
-//   });
-
-//   return fileList;
-// };
-
 const findSolFiles = (dir, fileList = []) => {
   const files = fs.readdirSync(dir);
 
@@ -47,7 +30,8 @@ const findSolFiles = (dir, fileList = []) => {
 };
 
 function findImports(importPath) {
-  console.log(importPath);
+  importPath = path.normalize(importPath);
+
   const solFiles = findSolFiles(importDir);
 
   let matchedFile = solFiles.find((solFile) => solFile.includes(importPath));
