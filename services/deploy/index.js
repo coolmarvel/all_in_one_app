@@ -11,16 +11,34 @@ const { makeDynamicTx } = require("../transaction");
 const importDir = path.join(__dirname, "../../contracts");
 const projectDir = path.join(__dirname, "../../projects");
 
+// const findSolFiles = (dir, fileList = []) => {
+//   const files = fs.readdirSync(dir);
+
+//   files.forEach((file) => {
+//     let filePath = path.join(dir, file);
+//     let stat = fs.statSync(filePath);
+
+//     if (stat.isDirectory()) {
+//       fileList = findSolFiles(filePath, fileList);
+//     } else if (filePath.endsWith(".sol")) {
+//       fileList.push(filePath);
+//     }
+//   });
+
+//   return fileList;
+// };
+
 const findSolFiles = (dir, fileList = []) => {
   const files = fs.readdirSync(dir);
 
   files.forEach((file) => {
     let filePath = path.join(dir, file);
     let stat = fs.statSync(filePath);
+    let baseName = path.basename(filePath);
 
     if (stat.isDirectory()) {
       fileList = findSolFiles(filePath, fileList);
-    } else if (filePath.endsWith(".sol")) {
+    } else if (filePath.endsWith(".sol") && !baseName.startsWith("I")) {
       fileList.push(filePath);
     }
   });
@@ -29,6 +47,7 @@ const findSolFiles = (dir, fileList = []) => {
 };
 
 function findImports(importPath) {
+  console.log(importPath);
   const solFiles = findSolFiles(importDir);
 
   let matchedFile = solFiles.find((solFile) => solFile.includes(importPath));
@@ -95,12 +114,12 @@ const deploy = async (options) => {
 
     const solFiles = findSolFiles(projectDir);
 
-    let deployFiles = [];
+    let deployFiles;
     solFiles.forEach((file) => {
-      if (file.includes(`${options.project}.sol`)) deployFiles.push(file);
+      if (file.includes(`${options.project}.sol`)) deployFiles = file;
     });
 
-    const compiled = await compileSolidity(deployFiles[0]);
+    const compiled = await compileSolidity(deployFiles);
 
     const names = [];
     for (const key in compiled) {
@@ -114,19 +133,25 @@ const deploy = async (options) => {
 
     for (const key in answers) {
       if (answers[key] === true) {
+        const abi = compiled[`${key}.sol`].abi;
         const bytecode = compiled[`${key}.sol`].bytecode;
+
+        const contract = new web3.eth.Contract(abi);
+
+        const deployTx = contract.deploy({ data: `0x${bytecode}`, arguments: [] });
+        const estimatedGas = await deployTx.estimateGas({ from: account.address });
 
         const tx = {};
         tx.from = account.address;
         tx.nonce = await web3.eth.getTransactionCount(tx.from);
         tx.value = web3.utils.toWei("0", "ether");
         tx.data = `0x${bytecode}`;
-        tx.gas = "101292";
+        tx.gas = estimatedGas;
         tx.maxFeePriorityPerGas = await web3.eth.getGasPrice();
         tx.chainId = await web3.eth.getChainId();
 
         const signedTx = await web3.eth.accounts.signTransaction(tx, account.privateKey);
-        console.log(signedTx);
+        // console.log(signedTx);
 
         const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
         console.log(receipt);

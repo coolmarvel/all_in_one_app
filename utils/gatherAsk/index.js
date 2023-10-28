@@ -188,7 +188,12 @@ const askKeystoreCombineDir = (split, index) => {
 const askEnsureDeploy = (names) => {
   const questions = [];
   for (const name of names) {
-    const question = { type: "confirm", name: `${name}`, message: `Are you sure to deploy ${name} tx?`, default: true };
+    const question = {
+      type: "confirm",
+      name: `${name}`,
+      message: `Are you sure to deploy ${name} tx?`,
+      default: true,
+    };
     questions.push(question);
   }
 
