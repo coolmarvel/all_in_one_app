@@ -3,6 +3,7 @@ const path = require("path");
 const solc = require("solc");
 
 const ask = require("../../utils/gatherAsk");
+const logger = require("../../utils/console");
 const getProvider = require("../../utils/provider");
 
 const { unlockKeystore } = require("../keystore");
@@ -120,10 +121,11 @@ const deploy = async (options) => {
         const abi = compiled[`${key}.sol`].abi;
         const bytecode = compiled[`${key}.sol`].bytecode;
 
-        const contract = new web3.eth.Contract(abi);
+        let gasLimit, maxFeePerGas, maxPriorityFeePerGas;
 
+        const contract = new web3.eth.Contract(abi);
         const deployTx = contract.deploy({ data: `0x${bytecode}`, arguments: [] });
-        const estimatedGas = await deployTx.estimateGas({ from: account.address });
+        gasLimit = await deployTx.estimateGas({ from: account.address });
 
         const tx = {};
         tx.from = account.address;
@@ -131,7 +133,7 @@ const deploy = async (options) => {
         tx.value = web3.utils.toWei("0", "ether");
         tx.data = `0x${bytecode}`;
         tx.gas = estimatedGas;
-        tx.maxFeePriorityPerGas = await web3.eth.getGasPrice();
+        tx.maxPriorityFeePerGas = await web3.eth.getGasPrice();
         tx.chainId = await web3.eth.getChainId();
 
         const signedTx = await web3.eth.accounts.signTransaction(tx, account.privateKey);
@@ -140,23 +142,23 @@ const deploy = async (options) => {
         const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
         console.log(receipt);
 
-        //       console.log(`
+        console.log(`
 
-        //  - ${key}
-        //    - ContractRegistry already exist
-        //    - type       : ${type}
-        //    - contract   : ${key}
-        //    - chainID    : ${chainId}
-        //    - from       : ${from}
-        //    - to         : ${to}
-        //    - nonce      : ${nonce}
-        //    - gasTipCap  : ${maxPriorityFeePerGas}
-        //    - gasFeeCap  : ${maxFeePerGas}
-        //    - value      : ${value}
-        //    - gasLimit   : ${gas}
+         - ${key}
+           - ContractRegistry already exist
+           - type       : ${type}
+           - contract   : ${key}
+           - chainID    : ${chainId}
+           - from       : ${from}
+           - to         : ${to}
+           - nonce      : ${nonce}
+           - gasTipCap  : ${maxPriorityFeePerGas}
+           - gasFeeCap  : ${maxFeePerGas}
+           - value      : ${value}
+           - gasLimit   : ${gas}
 
-        //  -> Deploy contract
-        //     `);
+         -> Deploy contract
+            `);
       }
     }
   } catch (error) {
