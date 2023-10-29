@@ -30,8 +30,29 @@ const findSolFiles = (dir, fileList = []) => {
   return fileList;
 };
 
+const findInterfaceFiles = (dir, fileList = []) => {
+  const files = fs.readdirSync(dir);
+
+  files.forEach((file) => {
+    let filePath = path.join(dir, file);
+    let stat = fs.statSync(filePath);
+    let baseName = path.basename(filePath);
+
+    if (stat.isDirectory()) {
+      fileList = findSolFiles(filePath, fileList);
+    } else if (stat.isFile() && baseName.startsWith("I")) {
+      console.log(baseName);
+      fileList.push(filePath);
+    }
+  });
+
+  return fileList;
+};
+
 function findImports(importPath) {
   importPath = path.normalize(importPath);
+
+  const interfaceFiles = findInterfaceFiles(projectDir);
 
   const solFiles = findSolFiles(importDir);
 
