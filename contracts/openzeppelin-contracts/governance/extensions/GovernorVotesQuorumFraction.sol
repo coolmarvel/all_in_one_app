@@ -14,7 +14,10 @@ import "./GovernorVotes.sol";
 abstract contract GovernorVotesQuorumFraction is GovernorVotes {
     uint256 private _quorumNumerator;
 
-    event QuorumNumeratorUpdated(uint256 oldQuorumNumerator, uint256 newQuorumNumerator);
+    event QuorumNumeratorUpdated(
+        uint256 oldQuorumNumerator,
+        uint256 newQuorumNumerator
+    );
 
     /**
      * @dev Initialize quorum as a fraction of the token's total supply.
@@ -44,8 +47,12 @@ abstract contract GovernorVotesQuorumFraction is GovernorVotes {
     /**
      * @dev Returns the quorum for a block number, in terms of number of votes: `supply * numerator / denominator`.
      */
-    function quorum(uint256 blockNumber) public view virtual override returns (uint256) {
-        return (token.getPastTotalSupply(blockNumber) * quorumNumerator()) / quorumDenominator();
+    function quorum(
+        uint256 blockNumber
+    ) public view virtual override returns (uint256) {
+        return
+            (token.getPastTotalSupply(blockNumber) * quorumNumerator()) /
+            quorumDenominator();
     }
 
     /**
@@ -58,7 +65,9 @@ abstract contract GovernorVotesQuorumFraction is GovernorVotes {
      * - Must be called through a governance proposal.
      * - New numerator must be smaller or equal to the denominator.
      */
-    function updateQuorumNumerator(uint256 newQuorumNumerator) external virtual onlyGovernance {
+    function updateQuorumNumerator(
+        uint256 newQuorumNumerator
+    ) external virtual onlyGovernance {
         _updateQuorumNumerator(newQuorumNumerator);
     }
 
@@ -71,7 +80,9 @@ abstract contract GovernorVotesQuorumFraction is GovernorVotes {
      *
      * - New numerator must be smaller or equal to the denominator.
      */
-    function _updateQuorumNumerator(uint256 newQuorumNumerator) internal virtual {
+    function _updateQuorumNumerator(
+        uint256 newQuorumNumerator
+    ) internal virtual {
         require(
             newQuorumNumerator <= quorumDenominator(),
             "GovernorVotesQuorumFraction: quorumNumerator over quorumDenominator"

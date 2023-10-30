@@ -1,14 +1,26 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.7 <0.9.0;
 
-import "../openzeppelin-contracts/access/Ownable.sol";
-import "../openzeppelin-contracts/utils/Address.sol";
+pragma solidity 0.8.10;
+
+import "./openzeppelin-contracts/access/Ownable.sol";
+import "./openzeppelin-contracts/utils/Address.sol";
+
+/**
+ * This smart contract code is Copyright 2020 WEMADETREE Ltd. For more information see https://wemixnetwork.com/
+ *
+ */
+
+//ContractRegistry records information such as contract's address, name, tx hash.. and provides methods to find the stored information.
+//It is recommended to deploy when the nonce of the owner address is 0.
+//The reason is that the address of the contract is made of from and nonce of the deploy transaction.
 
 // data, _ := rlp.EncodeToBytes(struct {
 //	Addr  common.Address
 // 	Nonce uint64
 // }{b, nonce})
 // return common.BytesToAddress(Keccak256(data)[12:])
+
+//it is easy to find the contracts deployed by the owner.
 
 contract ContractRegistry is Ownable {
   using Address for address;

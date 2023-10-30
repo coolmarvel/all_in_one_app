@@ -35,7 +35,12 @@ contract GovernorMock is
         return _cancel(targets, values, calldatas, salt);
     }
 
-    function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256) {
+    function proposalThreshold()
+        public
+        view
+        override(Governor, GovernorSettings)
+        returns (uint256)
+    {
         return super.proposalThreshold();
     }
 
@@ -44,7 +49,12 @@ contract GovernorMock is
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public virtual override(Governor, GovernorProposalThreshold) returns (uint256) {
+    )
+        public
+        virtual
+        override(Governor, GovernorProposalThreshold)
+        returns (uint256)
+    {
         return super.propose(targets, values, calldatas, description);
     }
 }

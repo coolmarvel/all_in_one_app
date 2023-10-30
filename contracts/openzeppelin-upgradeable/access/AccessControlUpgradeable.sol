@@ -47,12 +47,16 @@ import "../proxy/utils/Initializable.sol";
  * grant and revoke this role. Extra precautions should be taken to secure
  * accounts that have been granted it.
  */
-abstract contract AccessControlUpgradeable is Initializable, ContextUpgradeable, IAccessControlUpgradeable, ERC165Upgradeable {
-    function __AccessControl_init() virtual internal onlyInitializing {
-    }
+abstract contract AccessControlUpgradeable is
+    Initializable,
+    ContextUpgradeable,
+    IAccessControlUpgradeable,
+    ERC165Upgradeable
+{
+    function __AccessControl_init() internal virtual onlyInitializing {}
 
-    function __AccessControl_init_unchained() internal onlyInitializing {
-    }
+    function __AccessControl_init_unchained() internal onlyInitializing {}
+
     struct RoleData {
         mapping(address => bool) members;
         bytes32 adminRole;
@@ -80,14 +84,21 @@ abstract contract AccessControlUpgradeable is Initializable, ContextUpgradeable,
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(IAccessControlUpgradeable).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
+        return
+            interfaceId == type(IAccessControlUpgradeable).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     /**
      * @dev Returns `true` if `account` has been granted `role`.
      */
-    function hasRole(bytes32 role, address account) public view virtual override returns (bool) {
+    function hasRole(
+        bytes32 role,
+        address account
+    ) public view virtual override returns (bool) {
         return _roles[role].members[account];
     }
 
@@ -131,7 +142,9 @@ abstract contract AccessControlUpgradeable is Initializable, ContextUpgradeable,
      *
      * To change a role's admin, use {_setRoleAdmin}.
      */
-    function getRoleAdmin(bytes32 role) public view virtual override returns (bytes32) {
+    function getRoleAdmin(
+        bytes32 role
+    ) public view virtual override returns (bytes32) {
         return _roles[role].adminRole;
     }
 
@@ -147,7 +160,10 @@ abstract contract AccessControlUpgradeable is Initializable, ContextUpgradeable,
      *
      * May emit a {RoleGranted} event.
      */
-    function grantRole(bytes32 role, address account) public virtual override onlyRole(getRoleAdmin(role)) {
+    function grantRole(
+        bytes32 role,
+        address account
+    ) public virtual override onlyRole(getRoleAdmin(role)) {
         _grantRole(role, account);
     }
 
@@ -162,7 +178,10 @@ abstract contract AccessControlUpgradeable is Initializable, ContextUpgradeable,
      *
      * May emit a {RoleRevoked} event.
      */
-    function revokeRole(bytes32 role, address account) public virtual override onlyRole(getRoleAdmin(role)) {
+    function revokeRole(
+        bytes32 role,
+        address account
+    ) public virtual override onlyRole(getRoleAdmin(role)) {
         _revokeRole(role, account);
     }
 
@@ -182,8 +201,14 @@ abstract contract AccessControlUpgradeable is Initializable, ContextUpgradeable,
      *
      * May emit a {RoleRevoked} event.
      */
-    function renounceRole(bytes32 role, address account) public virtual override {
-        require(account == _msgSender(), "AccessControl: can only renounce roles for self");
+    function renounceRole(
+        bytes32 role,
+        address account
+    ) public virtual override {
+        require(
+            account == _msgSender(),
+            "AccessControl: can only renounce roles for self"
+        );
 
         _revokeRole(role, account);
     }

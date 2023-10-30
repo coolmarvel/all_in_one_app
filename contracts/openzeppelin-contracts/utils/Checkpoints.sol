@@ -36,7 +36,10 @@ library Checkpoints {
      * @dev Returns the value at a given block number. If a checkpoint is not available at that block, the closest one
      * before it is returned, or zero otherwise.
      */
-    function getAtBlock(History storage self, uint256 blockNumber) internal view returns (uint256) {
+    function getAtBlock(
+        History storage self,
+        uint256 blockNumber
+    ) internal view returns (uint256) {
         require(blockNumber < block.number, "Checkpoints: block not yet mined");
 
         uint256 high = self._checkpoints.length;
@@ -57,14 +60,22 @@ library Checkpoints {
      *
      * Returns previous value and new value.
      */
-    function push(History storage self, uint256 value) internal returns (uint256, uint256) {
+    function push(
+        History storage self,
+        uint256 value
+    ) internal returns (uint256, uint256) {
         uint256 pos = self._checkpoints.length;
         uint256 old = latest(self);
-        if (pos > 0 && self._checkpoints[pos - 1]._blockNumber == block.number) {
+        if (
+            pos > 0 && self._checkpoints[pos - 1]._blockNumber == block.number
+        ) {
             self._checkpoints[pos - 1]._value = SafeCast.toUint224(value);
         } else {
             self._checkpoints.push(
-                Checkpoint({_blockNumber: SafeCast.toUint32(block.number), _value: SafeCast.toUint224(value)})
+                Checkpoint({
+                    _blockNumber: SafeCast.toUint32(block.number),
+                    _value: SafeCast.toUint224(value)
+                })
             );
         }
         return (old, value);

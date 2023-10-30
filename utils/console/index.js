@@ -10,6 +10,7 @@ const colors = {
 };
 
 module.exports = {
+  colors: colors,
   deploy: (params) =>
     console.log(`
 

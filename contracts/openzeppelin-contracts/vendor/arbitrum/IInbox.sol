@@ -22,7 +22,9 @@ pragma solidity ^0.8.0;
 import "./IMessageProvider.sol";
 
 interface IInbox is IMessageProvider {
-    function sendL2Message(bytes calldata messageData) external returns (uint256);
+    function sendL2Message(
+        bytes calldata messageData
+    ) external returns (uint256);
 
     function sendUnsignedTransaction(
         uint256 maxGas,
@@ -78,7 +80,9 @@ interface IInbox is IMessageProvider {
         bytes calldata data
     ) external payable returns (uint256);
 
-    function depositEth(uint256 maxSubmissionCost) external payable returns (uint256);
+    function depositEth(
+        uint256 maxSubmissionCost
+    ) external payable returns (uint256);
 
     function bridge() external view returns (address);
 

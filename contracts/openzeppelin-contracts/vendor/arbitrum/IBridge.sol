@@ -29,7 +29,12 @@ interface IBridge {
         bytes32 messageDataHash
     );
 
-    event BridgeCallTriggered(address indexed outbox, address indexed destAddr, uint256 amount, bytes data);
+    event BridgeCallTriggered(
+        address indexed outbox,
+        address indexed destAddr,
+        uint256 amount,
+        bytes data
+    );
 
     event InboxToggle(address indexed inbox, bool enabled);
 

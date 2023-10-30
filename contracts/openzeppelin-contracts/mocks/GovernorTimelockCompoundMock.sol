@@ -28,7 +28,9 @@ contract GovernorTimelockCompoundMock is
         GovernorVotesQuorumFraction(quorumNumerator_)
     {}
 
-    function supportsInterface(bytes4 interfaceId)
+    function supportsInterface(
+        bytes4 interfaceId
+    )
         public
         view
         virtual
@@ -38,7 +40,9 @@ contract GovernorTimelockCompoundMock is
         return super.supportsInterface(interfaceId);
     }
 
-    function quorum(uint256 blockNumber)
+    function quorum(
+        uint256 blockNumber
+    )
         public
         view
         override(IGovernor, GovernorVotesQuorumFraction)
@@ -59,7 +63,9 @@ contract GovernorTimelockCompoundMock is
     /**
      * Overriding nightmare
      */
-    function state(uint256 proposalId)
+    function state(
+        uint256 proposalId
+    )
         public
         view
         virtual
@@ -69,7 +75,12 @@ contract GovernorTimelockCompoundMock is
         return super.state(proposalId);
     }
 
-    function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256) {
+    function proposalThreshold()
+        public
+        view
+        override(Governor, GovernorSettings)
+        returns (uint256)
+    {
         return super.proposalThreshold();
     }
 
@@ -88,11 +99,22 @@ contract GovernorTimelockCompoundMock is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 salt
-    ) internal virtual override(Governor, GovernorTimelockCompound) returns (uint256 proposalId) {
+    )
+        internal
+        virtual
+        override(Governor, GovernorTimelockCompound)
+        returns (uint256 proposalId)
+    {
         return super._cancel(targets, values, calldatas, salt);
     }
 
-    function _executor() internal view virtual override(Governor, GovernorTimelockCompound) returns (address) {
+    function _executor()
+        internal
+        view
+        virtual
+        override(Governor, GovernorTimelockCompound)
+        returns (address)
+    {
         return super._executor();
     }
 }

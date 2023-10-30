@@ -30,7 +30,9 @@ contract UintToAddressMapMock {
         return _map.length();
     }
 
-    function at(uint256 index) public view returns (uint256 key, address value) {
+    function at(
+        uint256 index
+    ) public view returns (uint256 key, address value) {
         return _map.at(index);
     }
 
@@ -42,7 +44,10 @@ contract UintToAddressMapMock {
         return _map.get(key);
     }
 
-    function getWithMessage(uint256 key, string calldata errorMessage) public view returns (address) {
+    function getWithMessage(
+        uint256 key,
+        string calldata errorMessage
+    ) public view returns (address) {
         return _map.get(key, errorMessage);
     }
 }
@@ -73,7 +78,9 @@ contract AddressToUintMapMock {
         return _map.length();
     }
 
-    function at(uint256 index) public view returns (address key, uint256 value) {
+    function at(
+        uint256 index
+    ) public view returns (address key, uint256 value) {
         return _map.at(index);
     }
 
@@ -85,7 +92,10 @@ contract AddressToUintMapMock {
         return _map.get(key);
     }
 
-    function getWithMessage(address key, string calldata errorMessage) public view returns (uint256) {
+    function getWithMessage(
+        address key,
+        string calldata errorMessage
+    ) public view returns (uint256) {
         return _map.get(key, errorMessage);
     }
 }
@@ -115,7 +125,9 @@ contract Bytes32ToBytes32MapMock {
         return _map.length();
     }
 
-    function at(uint256 index) public view returns (bytes32 key, bytes32 value) {
+    function at(
+        uint256 index
+    ) public view returns (bytes32 key, bytes32 value) {
         return _map.at(index);
     }
 
@@ -127,7 +139,10 @@ contract Bytes32ToBytes32MapMock {
         return _map.get(key);
     }
 
-    function getWithMessage(bytes32 key, string calldata errorMessage) public view returns (bytes32) {
+    function getWithMessage(
+        bytes32 key,
+        string calldata errorMessage
+    ) public view returns (bytes32) {
         return _map.get(key, errorMessage);
     }
 }
@@ -158,7 +173,9 @@ contract UintToUintMapMock {
         return _map.length();
     }
 
-    function at(uint256 index) public view returns (uint256 key, uint256 value) {
+    function at(
+        uint256 index
+    ) public view returns (uint256 key, uint256 value) {
         return _map.at(index);
     }
 
@@ -170,7 +187,10 @@ contract UintToUintMapMock {
         return _map.get(key);
     }
 
-    function getWithMessage(uint256 key, string calldata errorMessage) public view returns (uint256) {
+    function getWithMessage(
+        uint256 key,
+        string calldata errorMessage
+    ) public view returns (uint256) {
         return _map.get(key, errorMessage);
     }
 }
@@ -201,7 +221,9 @@ contract Bytes32ToUintMapMock {
         return _map.length();
     }
 
-    function at(uint256 index) public view returns (bytes32 key, uint256 value) {
+    function at(
+        uint256 index
+    ) public view returns (bytes32 key, uint256 value) {
         return _map.at(index);
     }
 
@@ -213,7 +235,10 @@ contract Bytes32ToUintMapMock {
         return _map.get(key);
     }
 
-    function getWithMessage(bytes32 key, string calldata errorMessage) public view returns (uint256) {
+    function getWithMessage(
+        bytes32 key,
+        string calldata errorMessage
+    ) public view returns (uint256) {
         return _map.get(key, errorMessage);
     }
 }

@@ -2,7 +2,7 @@ const commander = require("commander");
 const readline = require("readline");
 const path = require("path");
 
-const { options, commands } = require("./services/flags");
+const {options, commands} = require("./services/flags");
 
 const major_version = 1;
 const minor_version = 1;
@@ -74,7 +74,7 @@ program
   .command(commands.genkey.name)
   .description(commands.genkey.description)
   .action(async () => {
-    const { generateKeystore } = require("./services/keystore");
+    const {generateKeystore} = require("./services/keystore");
 
     await generateKeystore();
   });
@@ -86,7 +86,7 @@ program
   .option(options.keystore.name, options.keystore.usage)
   .option(options.threshold.name, options.threshold.usage, options.threshold.value)
   .action(async () => {
-    const { unlockKeystore } = require("./services/keystore");
+    const {unlockKeystore} = require("./services/keystore");
 
     const options = program.opts();
 
@@ -106,7 +106,7 @@ program
   .option(options.keystore.name, options.keystore.usage)
   .option(options.threshold.name, options.threshold.usage, options.threshold.value)
   .action(async () => {
-    const { updateKeystore } = require("./services/keystore");
+    const {updateKeystore} = require("./services/keystore");
 
     const options = program.opts();
 
@@ -138,7 +138,7 @@ program
 
     const dir = path.join(__dirname, "contracts");
     const necessary = [
-      path.normalize(path.join(dir, "Registry/Registry.sol")),
+      path.normalize(path.join(dir, "Registry.sol")),
       path.normalize(path.join(dir, "openzeppelin-contracts/token/ERC20/ERC20.sol")),
       path.normalize(path.join(dir, "openzeppelin-contracts/token/ERC721/ERC721.sol")),
       path.normalize(path.join(dir, "openzeppelin-contracts/token/ERC1155/ERC1155.sol")),
@@ -151,7 +151,7 @@ program
       compiled.push(data);
     }
 
-    const { interactiveCLI, clearScreen } = require("./services/console");
+    const {interactiveCLI, clearScreen} = require("./services/console");
     await clearScreen();
     await interactiveCLI(options, compiled);
 

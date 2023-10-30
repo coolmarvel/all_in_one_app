@@ -32,7 +32,7 @@ function findImports(importPath) {
   if (matchedFile) {
     let contents = fs.readFileSync(matchedFile, "utf8");
 
-    return { contents };
+    return {contents};
   } else {
     console.log(`No file found that includes ${importPath}`);
     return null;
@@ -61,10 +61,10 @@ const compileSolidity = (sourceFile) => {
     try {
       const file = await slurpFile(sourceFile);
 
-      const input = { language: "Solidity", sources: {}, settings: { outputSelection: { "*": { "*": ["*"] } } } };
-      input.sources[file.name] = { content: file.content };
+      const input = {language: "Solidity", sources: {}, settings: {outputSelection: {"*": {"*": ["*"]}}}};
+      input.sources[file.name] = {content: file.content};
 
-      const output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
+      const output = JSON.parse(solc.compile(JSON.stringify(input), {import: findImports}));
 
       const data = {};
       for (const contract in output.contracts[file.name]) {

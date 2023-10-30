@@ -25,10 +25,7 @@ contract RoleManager is AccessControl, IRoleManager {
     super._setRoleAdmin(role, adminRole);
   }
 
-  function grantRole(
-    bytes32 role,
-    address account
-  ) public virtual override(AccessControl, IAccessControl) onlyRole(getRoleAdmin(role)) {
+  function grantRole(bytes32 role, address account) public virtual override(AccessControl, IAccessControl) onlyRole(getRoleAdmin(role)) {
     bytes32 _role = role;
     address _account = account;
 
@@ -39,10 +36,7 @@ contract RoleManager is AccessControl, IRoleManager {
     }
   }
 
-  function revokeRole(
-    bytes32 role,
-    address account
-  ) public virtual override(AccessControl, IAccessControl) onlyRole(getRoleAdmin(role)) {
+  function revokeRole(bytes32 role, address account) public virtual override(AccessControl, IAccessControl) onlyRole(getRoleAdmin(role)) {
     bytes32 _role = role;
     address _account = account;
 
