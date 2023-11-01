@@ -6,8 +6,8 @@ const ask = require("../../utils/gatherAsk");
 const logger = require("../../utils/console");
 const getProvider = require("../../utils/provider");
 
-const { unlockKeystore } = require("../keystore");
-const { makeDynamicTx } = require("../transaction");
+const {unlockKeystore} = require("../keystore");
+const {makeDynamicTx} = require("../transaction");
 
 const importDir = path.join(__dirname, "../../contracts");
 const projectDir = path.join(__dirname, "../../projects");
@@ -61,7 +61,7 @@ function findImports(importPath) {
   if (matchedFile) {
     let contents = fs.readFileSync(matchedFile, "utf8");
 
-    return { contents };
+    return {contents};
   } else {
     console.log(`No file found that includes ${importPath}`);
     return null;
@@ -90,10 +90,10 @@ const compileSolidity = (sourceFile) => {
     try {
       const file = await slurpFile(sourceFile);
 
-      const input = { language: "Solidity", sources: {}, settings: { outputSelection: { "*": { "*": ["*"] } } } };
-      input.sources[file.name] = { content: file.content };
+      const input = {language: "Solidity", sources: {}, settings: {outputSelection: {"*": {"*": ["*"]}}}};
+      input.sources[file.name] = {content: file.content};
 
-      const output = JSON.parse(solc.compile(JSON.stringify(input), { import: findImports }));
+      const output = JSON.parse(solc.compile(JSON.stringify(input), {import: findImports}));
 
       const data = {};
       for (const contract in output.contracts[file.name]) {
@@ -145,15 +145,15 @@ const deploy = async (options) => {
         let gasLimit, maxFeePerGas, maxPriorityFeePerGas;
 
         const contract = new web3.eth.Contract(abi);
-        const deployTx = contract.deploy({ data: `0x${bytecode}`, arguments: [] });
-        gasLimit = await deployTx.estimateGas({ from: account.address });
+        const deployTx = contract.deploy({data: `0x${bytecode}`, arguments: []});
+        gasLimit = await deployTx.estimateGas({from: account.address});
 
         const tx = {};
         tx.from = account.address;
         tx.nonce = await web3.eth.getTransactionCount(tx.from);
         tx.value = web3.utils.toWei("0", "ether");
         tx.data = `0x${bytecode}`;
-        tx.gas = estimatedGas;
+        tx.gas = gasLimit;
         tx.maxPriorityFeePerGas = await web3.eth.getGasPrice();
         tx.chainId = await web3.eth.getChainId();
 
@@ -163,23 +163,23 @@ const deploy = async (options) => {
         const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
         console.log(receipt);
 
-        console.log(`
+        // console.log(`
 
-         - ${key}
-           - ContractRegistry already exist
-           - type       : ${type}
-           - contract   : ${key}
-           - chainID    : ${chainId}
-           - from       : ${from}
-           - to         : ${to}
-           - nonce      : ${nonce}
-           - gasTipCap  : ${maxPriorityFeePerGas}
-           - gasFeeCap  : ${maxFeePerGas}
-           - value      : ${value}
-           - gasLimit   : ${gas}
+        //  - ${key}
+        //    - ContractRegistry already exist
+        //    - type       : ${type}
+        //    - contract   : ${key}
+        //    - chainID    : ${chainId}
+        //    - from       : ${from}
+        //    - to         : ${to}
+        //    - nonce      : ${nonce}
+        //    - gasTipCap  : ${maxPriorityFeePerGas}
+        //    - gasFeeCap  : ${maxFeePerGas}
+        //    - value      : ${value}
+        //    - gasLimit   : ${gas}
 
-         -> Deploy contract
-            `);
+        //  -> Deploy contract
+        //     `);
       }
     }
   } catch (error) {

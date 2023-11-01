@@ -154,10 +154,6 @@ program
     const {interactiveCLI, clearScreen} = require("./services/console");
     await clearScreen();
     await interactiveCLI(options, compiled);
-
-    // const { clearScreen, app } = require("./services/console");
-    // await clearScreen();
-    // await app(options);
   });
 
 program.command(commands.create.name).description(commands.create.description);

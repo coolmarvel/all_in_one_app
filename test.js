@@ -1,28 +1,35 @@
-const fs = require("fs-extra");
-const path = require("path");
-const solc = require("solc");
+const Transport = require("@ledgerhq/hw-transport-node-hid").default;
+const Eth = require("@ledgerhq/hw-app-eth").default;
 
-const contractPath = path.resolve(__dirname, "contracts/Registry");
-const fileNames = fs.readdirSync(contractPath);
-console.log(`fileNames:: ${fileNames}`);
+const getProvider = require("./utils/provider");
 
-const compilerInput = {
-  language: "Solidity",
-  sources: fileNames.reduce((input, fileName) => {
-    const filePath = path.resolve(contractPath, fileName);
-    const source = fs.readFileSync(filePath, "utf8");
+const signTransactionByLedger = async () => {
+  try {
+    // const transport = await Transport.create();
+    // const eth = await Eth(transport);
 
-    return { ...input, [fileName]: { content: source } };
-  }, {}),
-  settings: { outputSelection: { "*": { "*": ["*"] } } },
+    const web3 = await getProvider();
+
+    // const hdPath = "m/44'/60'/0'/0/0";
+    // const result = await eth.getAddress(hdPath);
+    // console.log(`Ledger address: ${result.address}`);
+
+    const txObject = {};
+    txObject.from = "5dc93ef0344a9d86fe6e172566a744e8e3078bf8";
+    // txObject.from = result.address;
+    txObject.to = "eafcd375e7868a351c1f24644cd435461dbf5945";
+    txObject.value = web3.utils.toWei("0.1", "ether");
+    txObject.gas = "21000";
+    txObject.gasPrice = await web3.eth.getGasPrice();
+    txObject.nonce = await web3.eth.getTransactionCount(txObject.from);
+    txObject.chainId = web3.utils.toHex(await web3.eth.getChainId());
+
+    const signedTx = await web3.eth.signTransaction(txObject);
+    console.log(signedTx);
+
+    // const signedTx = await eth.signTransaction(hdPath);
+  } catch (error) {
+    console.error(error.message);
+  }
 };
-
-const compiled = JSON.parse(solc.compile(JSON.stringify(compilerInput)));
-console.log(compiled);
-
-fileNames.map((fileName) => {
-  const contracts = Object.keys(compiled.contracts[fileName]);
-  contracts.map((contract) => {
-    console.log(compiled.contracts[fileName][contract]);
-  });
-});
+signTransactionByLedger();
