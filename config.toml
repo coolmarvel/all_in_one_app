@@ -9,3 +9,19 @@ feepayer = "0x0000000000000000000000000000000000000000"
 [keystore]
 path = "/Users/wm-il000572/Desktop/waffle_js/keystore/wemix/keystore_0x5DC93Ef0344a9d86fE6E172566a744E8e3078bf8.json" # Keystore Path
 owner = "0x5dc93ef0344a9d86fe6e172566a744e8e3078bf8"                                                                  # Mainnet Owner
+
+[roles]
+# ROLES MultiSigWallet
+[roles.MultiSigWallet_Owner1]
+address = ""
+[roles.MultiSigWallet_Owner2]
+address = ""
+[roles.MultiSigWallet_Owner3]
+address = ""
+
+# ROLES Validator
+[roles.Validator]
+
+[tokenInfos]
+[tokenInfos.FungibleToken.Mangwon]
+params = ["MangwonToken", "MWT", "deploy"]

@@ -17,12 +17,12 @@ const findSolFiles = (dir, fileList = []) => {
 
   files.forEach((file) => {
     let filePath = path.join(dir, file);
-    let stat = fs.statSync(filePath);
+    let fileStat = fs.statSync(filePath);
     let baseName = path.basename(filePath);
 
-    if (stat.isDirectory()) {
+    if (fileStat.isDirectory()) {
       fileList = findSolFiles(filePath, fileList);
-    } else if (filePath.endsWith(".sol") && !baseName.startsWith("I")) {
+    } else if (filePath.endsWith(".sol")) {
       fileList.push(filePath);
     }
   });
@@ -35,13 +35,12 @@ const findInterfaceFiles = (dir, fileList = []) => {
 
   files.forEach((file) => {
     let filePath = path.join(dir, file);
-    let stat = fs.statSync(filePath);
+    let fileStat = fs.statSync(filePath);
     let baseName = path.basename(filePath);
 
-    if (stat.isDirectory()) {
-      fileList = findSolFiles(filePath, fileList);
-    } else if (stat.isFile() && baseName.startsWith("I")) {
-      console.log(baseName);
+    if (fileStat.isDirectory()) {
+      fileList = findInterfaceFiles(filePath, fileList);
+    } else if (filePath.endsWith(".sol") && baseName.startsWith("I")) {
       fileList.push(filePath);
     }
   });
@@ -52,19 +51,32 @@ const findInterfaceFiles = (dir, fileList = []) => {
 function findImports(importPath) {
   importPath = path.normalize(importPath);
 
-  const interfaceFiles = findInterfaceFiles(projectDir);
+  if (importPath.startsWith("I")) {
+    const solFiles = findInterfaceFiles(projectDir);
 
-  const solFiles = findSolFiles(importDir);
+    let matchedFile = solFiles.find((solFile) => solFile.includes(importPath));
 
-  let matchedFile = solFiles.find((solFile) => solFile.includes(importPath));
+    if (matchedFile) {
+      let contents = fs.readFileSync(matchedFile, "utf8");
 
-  if (matchedFile) {
-    let contents = fs.readFileSync(matchedFile, "utf8");
-
-    return {contents};
+      return {contents};
+    } else {
+      console.log(`No file found that includes ${importPath}`);
+      return null;
+    }
   } else {
-    console.log(`No file found that includes ${importPath}`);
-    return null;
+    const solFiles = findSolFiles(importDir);
+
+    let matchedFile = solFiles.find((solFile) => solFile.includes(importPath));
+
+    if (matchedFile) {
+      let contents = fs.readFileSync(matchedFile, "utf8");
+
+      return {contents};
+    } else {
+      console.log(`No file found that includes ${importPath}`);
+      return null;
+    }
   }
 }
 
@@ -142,8 +154,7 @@ const deploy = async (options) => {
         const abi = compiled[`${key}.sol`].abi;
         const bytecode = compiled[`${key}.sol`].bytecode;
 
-        let gasLimit, maxFeePerGas, maxPriorityFeePerGas;
-
+        let gasLimit;
         const contract = new web3.eth.Contract(abi);
         const deployTx = contract.deploy({data: `0x${bytecode}`, arguments: []});
         gasLimit = await deployTx.estimateGas({from: account.address});

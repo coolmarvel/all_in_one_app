@@ -11,6 +11,13 @@ const fee_payer = data.node.feepayer;
 const mainnet_url = data.node.mainnet_url;
 const testnet_url = data.node.testnet_url;
 
+const multiSig_owner1 = data.roles.MultiSigWallet_Owner1;
+const multiSig_owner2 = data.roles.MultiSigWallet_Owner2;
+const multiSig_owner3 = data.roles.MultiSigWallet_Owner3;
+
+const deployTokens = [];
+console.log(data.tokenInfos.FungibleToken);
+
 const global = {};
 
 global.name = name;
@@ -18,5 +25,9 @@ global.owner = owner;
 global.fee_payer = fee_payer;
 if (name === "mainnet") global.url = mainnet_url;
 else if (name === "testnet") global.url = testnet_url;
+
+global.multiSig_owner1 = multiSig_owner1;
+global.multiSig_owner2 = multiSig_owner2;
+global.multiSig_owner3 = multiSig_owner3;
 
 module.exports = global;
