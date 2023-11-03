@@ -13,15 +13,21 @@ owner = "0x5dc93ef0344a9d86fe6e172566a744e8e3078bf8"                            
 [roles]
 # ROLES MultiSigWallet
 [roles.MultiSigWallet_Owner1]
-address = ""
+address = "0x548a7b50acd0d3eb72ed6b71b8608393b543d909"
 [roles.MultiSigWallet_Owner2]
-address = ""
+address = "0x44657575171a6d6ef476a4133537b99416a4f46d"
 [roles.MultiSigWallet_Owner3]
-address = ""
+address = "0xc4df0dfaeb4f349f24f14e5ef74f79a2130e0ab2"
 
 # ROLES Validator
 [roles.Validator]
 
 [tokenInfos]
-[tokenInfos.FungibleToken.Mangwon]
+[tokenInfos.FungibleToken.1]
 params = ["MangwonToken", "MWT", "deploy"]
+
+[tokenInfos.FungibleToken.2]
+params = ["DeoksoToken", "DST", "deploy"]
+
+[tokenInfos.FungibleToken.3]
+params = ["JungrangToken", "JRT", "deploy"]

@@ -3,11 +3,9 @@ const path = require("path");
 const solc = require("solc");
 
 const ask = require("../../utils/gatherAsk");
-const logger = require("../../utils/console");
 const getProvider = require("../../utils/provider");
 
 const {unlockKeystore} = require("../keystore");
-const {makeDynamicTx} = require("../transaction");
 
 const importDir = path.join(__dirname, "../../contracts");
 const projectDir = path.join(__dirname, "../../projects");
@@ -139,6 +137,8 @@ const deploy = async (options) => {
 
     const compiled = await compileSolidity(deployFiles);
 
+    const filter = parseFilter(options.filter);
+
     const names = [];
     for (const key in compiled) {
       const name = key.replace(/\.sol/g, "");
@@ -156,7 +156,7 @@ const deploy = async (options) => {
 
         let gasLimit;
         const contract = new web3.eth.Contract(abi);
-        const deployTx = contract.deploy({data: `0x${bytecode}`, arguments: []});
+        const deployTx = contract.deploy({data: `0x${bytecode}`, arguments: [filter.arguments]});
         gasLimit = await deployTx.estimateGas({from: account.address});
 
         const tx = {};
@@ -195,6 +195,25 @@ const deploy = async (options) => {
     }
   } catch (error) {
     console.error(error.message);
+  }
+};
+
+const filterDir = path.join(projectDir, "MultiSigWallet/contracts/deploy");
+const parseFilter = (filter) => {
+  if (filter) {
+    const filters = filter.split(",").map((v) => parseInt(v));
+    const files = fs.readdirSync(filterDir);
+
+    function filterFilesByPrefixes(files, prefixes) {
+      return files.filter((file) => {
+        const filePrefix = file.split("_")[0];
+        return prefixes.includes(parseInt(filePrefix));
+      });
+    }
+
+    const result = filterFilesByPrefixes(files, filters);
+
+    return result;
   }
 };
 

@@ -62,6 +62,7 @@ program
   .option(options.project.name, options.project.usage)
   .option(options.keystore.name, options.keystore.usage)
   .option(options.threshold.name, options.threshold.usage, options.threshold.value)
+  .option(options.filter.name, options.filter.usage)
   .action(async () => {
     const options = program.opts();
 

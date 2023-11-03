@@ -15,9 +15,6 @@ const multiSig_owner1 = data.roles.MultiSigWallet_Owner1;
 const multiSig_owner2 = data.roles.MultiSigWallet_Owner2;
 const multiSig_owner3 = data.roles.MultiSigWallet_Owner3;
 
-const deployTokens = [];
-console.log(data.tokenInfos.FungibleToken);
-
 const global = {};
 
 global.name = name;
