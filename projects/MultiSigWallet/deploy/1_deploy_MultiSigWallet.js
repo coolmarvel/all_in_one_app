@@ -1,4 +1,4 @@
-const global = require("../../../../utils/global");
+const global = require("../../../utils/global");
 
 module.exports = {
   arguments: {

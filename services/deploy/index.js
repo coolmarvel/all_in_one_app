@@ -7,8 +7,9 @@ const getProvider = require("../../utils/provider");
 
 const {unlockKeystore} = require("../keystore");
 
-const importDir = path.join(__dirname, "../../contracts");
-const projectDir = path.join(__dirname, "../../projects");
+const contractsDir = path.join(__dirname, "../../contracts");
+const projectsDir = path.join(__dirname, "../../projects");
+const filterDir = path.join(projectsDir, "MultiSigWallet/contracts/deploy");
 
 const findSolFiles = (dir, fileList = []) => {
   const files = fs.readdirSync(dir);
@@ -50,7 +51,7 @@ function findImports(importPath) {
   importPath = path.normalize(importPath);
 
   if (importPath.startsWith("I")) {
-    const solFiles = findInterfaceFiles(projectDir);
+    const solFiles = findInterfaceFiles(projectsDir);
 
     let matchedFile = solFiles.find((solFile) => solFile.includes(importPath));
 
@@ -63,7 +64,7 @@ function findImports(importPath) {
       return null;
     }
   } else {
-    const solFiles = findSolFiles(importDir);
+    const solFiles = findSolFiles(contractsDir);
 
     let matchedFile = solFiles.find((solFile) => solFile.includes(importPath));
 
@@ -124,11 +125,29 @@ const compileSolidity = (sourceFile) => {
   });
 };
 
+const parseFilter = (filter) => {
+  if (filter) {
+    const filters = filter.split(",").map((v) => parseInt(v));
+    const files = fs.readdirSync(filterDir);
+
+    function filterFilesByPrefixes(files, prefixes) {
+      return files.filter((file) => {
+        const filePrefix = file.split("_")[0];
+        return prefixes.includes(parseInt(filePrefix));
+      });
+    }
+
+    const result = filterFilesByPrefixes(files, filters);
+
+    return result;
+  }
+};
+
 const deploy = async (options) => {
   try {
     const web3 = await getProvider();
 
-    const solFiles = findSolFiles(projectDir);
+    const solFiles = findSolFiles(projectsDir);
 
     let deployFiles;
     solFiles.forEach((file) => {
@@ -138,6 +157,7 @@ const deploy = async (options) => {
     const compiled = await compileSolidity(deployFiles);
 
     const filter = parseFilter(options.filter);
+    console.log(filter);
 
     const names = [];
     for (const key in compiled) {
@@ -173,47 +193,10 @@ const deploy = async (options) => {
 
         const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
         console.log(receipt);
-
-        // console.log(`
-
-        //  - ${key}
-        //    - ContractRegistry already exist
-        //    - type       : ${type}
-        //    - contract   : ${key}
-        //    - chainID    : ${chainId}
-        //    - from       : ${from}
-        //    - to         : ${to}
-        //    - nonce      : ${nonce}
-        //    - gasTipCap  : ${maxPriorityFeePerGas}
-        //    - gasFeeCap  : ${maxFeePerGas}
-        //    - value      : ${value}
-        //    - gasLimit   : ${gas}
-
-        //  -> Deploy contract
-        //     `);
       }
     }
   } catch (error) {
     console.error(error.message);
-  }
-};
-
-const filterDir = path.join(projectDir, "MultiSigWallet/contracts/deploy");
-const parseFilter = (filter) => {
-  if (filter) {
-    const filters = filter.split(",").map((v) => parseInt(v));
-    const files = fs.readdirSync(filterDir);
-
-    function filterFilesByPrefixes(files, prefixes) {
-      return files.filter((file) => {
-        const filePrefix = file.split("_")[0];
-        return prefixes.includes(parseInt(filePrefix));
-      });
-    }
-
-    const result = filterFilesByPrefixes(files, filters);
-
-    return result;
   }
 };
 
