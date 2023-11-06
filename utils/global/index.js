@@ -11,9 +11,9 @@ const fee_payer = data.node.feepayer;
 const mainnet_url = data.node.mainnet_url;
 const testnet_url = data.node.testnet_url;
 
-const multiSig_owner1 = data.roles.MultiSigWallet_Owner1;
-const multiSig_owner2 = data.roles.MultiSigWallet_Owner2;
-const multiSig_owner3 = data.roles.MultiSigWallet_Owner3;
+const multiSig_owner1 = data.roles.MultiSigWallet_Owner1.address;
+const multiSig_owner2 = data.roles.MultiSigWallet_Owner2.address;
+const multiSig_owner3 = data.roles.MultiSigWallet_Owner3.address;
 
 const global = {};
 
